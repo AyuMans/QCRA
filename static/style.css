@@ -1,0 +1,425 @@
+/* ========================================================
+   GENERAL
+   ======================================================== */
+
+body {
+
+    font-family: Arial, sans-serif;
+
+    background: #f4f4f4;
+
+    margin: 0;
+
+    padding: 30px;
+
+    color: #222;
+
+}
+
+
+/* ========================================================
+   MAIN CONTAINER
+   ======================================================== */
+
+.container {
+
+    max-width: 1000px;
+
+    margin: auto;
+
+}
+
+
+/* ========================================================
+   HEADER
+   ======================================================== */
+
+header {
+
+    text-align: center;
+
+    margin-bottom: 30px;
+
+}
+
+header h1 {
+
+    margin-bottom: 5px;
+
+}
+
+header p {
+
+    color: #666;
+
+}
+
+
+/* ========================================================
+   SECTIONS
+   ======================================================== */
+
+.section {
+
+    background: white;
+
+    padding: 25px;
+
+    margin-bottom: 20px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 8px;
+
+}
+
+
+/* ========================================================
+   QUBIT SETUP
+   ======================================================== */
+
+.qubit-setup {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-bottom: 25px;
+
+}
+
+
+.qubit-setup label {
+
+    font-weight: bold;
+
+}
+
+
+.qubit-setup input {
+
+    width: 60px;
+
+    padding: 8px;
+
+    border: 1px solid #bbb;
+
+    border-radius: 4px;
+
+}
+
+
+/* ========================================================
+   QUBIT CARD
+   ======================================================== */
+
+.qubit-card {
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    padding: 15px;
+
+    margin-bottom: 15px;
+
+    background: #fafafa;
+
+}
+
+
+.qubit-title {
+
+    border-bottom: 1px solid #ddd;
+
+    margin-bottom: 15px;
+
+}
+
+
+.qubit-title h3 {
+
+    margin-top: 0;
+
+}
+
+
+/* ========================================================
+   GATE ROW
+   ======================================================== */
+
+.gate-row {
+
+    display: flex;
+
+    align-items: end;
+
+    gap: 12px;
+
+    padding: 10px;
+
+    margin-bottom: 10px;
+
+    background: white;
+
+    border: 1px solid #ddd;
+
+    border-radius: 5px;
+
+}
+
+
+.input-group {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+
+}
+
+
+.input-group label {
+
+    font-size: 13px;
+
+    color: #555;
+
+}
+
+
+.input-group select {
+
+    padding: 8px;
+
+    border: 1px solid #bbb;
+
+    border-radius: 4px;
+
+    min-width: 100px;
+
+}
+
+
+/* ========================================================
+   BUTTONS
+   ======================================================== */
+
+button {
+
+    padding: 9px 15px;
+
+    border: 1px solid #aaa;
+
+    border-radius: 5px;
+
+    background: #eee;
+
+    cursor: pointer;
+
+}
+
+
+button:hover {
+
+    background: #ddd;
+
+}
+
+
+.add-gate-button {
+
+    margin-top: 5px;
+
+}
+
+
+.analyse-button {
+
+    margin-top: 15px;
+
+    padding: 12px 20px;
+
+    font-weight: bold;
+
+}
+
+
+/* ========================================================
+   REMOVE BUTTON
+   ======================================================== */
+
+.remove-button {
+
+    background: #f5f5f5;
+
+}
+
+
+/* ========================================================
+   ANALYSIS
+   ======================================================== */
+
+.metrics {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 10px;
+
+}
+
+
+.metric {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    padding: 12px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 5px;
+
+    background: #fafafa;
+
+}
+
+
+.metric strong {
+
+    font-size: 18px;
+
+}
+
+
+/* ========================================================
+   GATE FREQUENCY
+   ======================================================== */
+
+.gate-frequency {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+}
+
+
+.frequency-item {
+
+    padding: 10px 15px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 5px;
+
+    background: #fafafa;
+
+}
+
+
+.frequency-item strong {
+
+    margin-left: 10px;
+
+}
+
+
+/* ========================================================
+   CIRCUIT DIAGRAM
+   ======================================================== */
+
+.circuit-diagram {
+
+    background: #f7f7f7;
+
+    border: 1px solid #ddd;
+
+    padding: 20px;
+
+    overflow-x: auto;
+
+    font-family: monospace;
+
+    font-size: 14px;
+
+}
+
+
+/* ========================================================
+   ERROR
+   ======================================================== */
+
+.error {
+
+    background: #ffe6e6;
+
+    border: 1px solid #ffaaaa;
+
+    padding: 15px;
+
+    margin-bottom: 20px;
+
+    border-radius: 5px;
+
+}
+
+
+/* ========================================================
+   PLACEHOLDER
+   ======================================================== */
+
+.placeholder {
+
+    color: #777;
+
+}
+
+
+/* ========================================================
+   MOBILE
+   ======================================================== */
+
+@media (max-width: 700px) {
+
+    body {
+
+        padding: 15px;
+
+    }
+
+
+    .gate-row {
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+    }
+
+
+    .qubit-setup {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+    }
+
+
+    .metrics {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
