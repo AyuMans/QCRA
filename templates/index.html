@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Quantum Circuit Analyser
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <!-- ================================================= -->
+    <!-- HEADER                                            -->
+    <!-- ================================================= -->
+
+    <header>
+
+        <h1>
+            Quantum Circuit Analyser
+        </h1>
+
+        <p>
+            Build and analyse a quantum circuit
+        </p>
+
+    </header>
+
+
+    <!-- ================================================= -->
+    <!-- CIRCUIT INPUT                                     -->
+    <!-- ================================================= -->
+
+    <section class="section">
+
+        <h2>
+            Circuit Input
+        </h2>
+
+
+        <form
+            method="POST"
+            id="circuitForm"
+        >
+
+
+            <!-- ========================================= -->
+            <!-- NUMBER OF QUBITS                          -->
+            <!-- ========================================= -->
+
+            <div class="qubit-setup">
+
+                <label for="num_qubits">
+
+                    Number of Qubits
+
+                </label>
+
+
+                <input
+                    type="number"
+                    id="num_qubits"
+                    name="num_qubits"
+                    min="1"
+                    max="20"
+                    value="{{ num_qubits }}"
+                    required
+                >
+
+
+                <button
+                    type="button"
+                    onclick="createCircuit()"
+                >
+
+                    Create Circuit
+
+                </button>
+
+            </div>
+
+
+            <!-- ========================================= -->
+            <!-- QUBIT CARDS                               -->
+            <!-- ========================================= -->
+
+            <div id="qubitContainer">
+
+                <!-- JavaScript creates qubit cards here -->
+
+            </div>
+
+
+            <!-- ========================================= -->
+            <!-- ANALYSE BUTTON                            -->
+            <!-- ========================================= -->
+
+            <button
+                type="submit"
+                class="analyse-button"
+            >
+
+                Analyse Circuit
+
+            </button>
+
+
+        </form>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- ERROR                                            -->
+    <!-- ================================================= -->
+
+    {% if error %}
+
+    <div class="error">
+
+        <strong>Error:</strong>
+
+        {{ error }}
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- ================================================= -->
+    <!-- ANALYSIS SECTION                                 -->
+    <!-- ================================================= -->
+
+    <section class="section">
+
+
+        <h2>
+            Analysis
+        </h2>
+
+
+        {% if analysis %}
+
+
+        <div class="metrics">
+
+
+            <!-- QUBITS -->
+
+            <div class="metric">
+
+                <span>
+                    Qubits
+                </span>
+
+                <strong>
+                    {{ analysis.qubits }}
+                </strong>
+
+            </div>
+
+
+            <!-- OPERATIONS -->
+
+            <div class="metric">
+
+                <span>
+                    Total Operations
+                </span>
+
+                <strong>
+                    {{ analysis.operations }}
+                </strong>
+
+            </div>
+
+
+            <!-- DEPTH -->
+
+            <div class="metric">
+
+                <span>
+                    Circuit Depth
+                </span>
+
+                <strong>
+                    {{ analysis.depth }}
+                </strong>
+
+            </div>
+
+
+            <!-- SINGLE QUBIT -->
+
+            <div class="metric">
+
+                <span>
+                    Single-Qubit Gates
+                </span>
+
+                <strong>
+                    {{ analysis.single_qubit_gates }}
+                </strong>
+
+            </div>
+
+
+            <!-- MULTI QUBIT -->
+
+            <div class="metric">
+
+                <span>
+                    Multi-Qubit Gates
+                </span>
+
+                <strong>
+                    {{ analysis.multi_qubit_gates }}
+                </strong>
+
+            </div>
+
+
+            <!-- ENTANGLING -->
+
+            <div class="metric">
+
+                <span>
+                    Entangling Gates
+                </span>
+
+                <strong>
+                    {{ analysis.entangling_gates }}
+                </strong>
+
+            </div>
+
+
+            <!-- COMPLEXITY -->
+
+            <div class="metric">
+
+                <span>
+                    Complexity
+                </span>
+
+                <strong>
+                    {{ analysis.complexity }}
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- ============================================= -->
+        <!-- GATE FREQUENCY                               -->
+        <!-- ============================================= -->
+
+        <h3>
+            Gate Frequency
+        </h3>
+
+
+        <div class="gate-frequency">
+
+
+            {% for gate, count in analysis.gate_counts.items() %}
+
+
+            <div class="frequency-item">
+
+                <span>
+                    {{ gate }}
+                </span>
+
+                <strong>
+                    {{ count }}
+                </strong>
+
+            </div>
+
+
+            {% endfor %}
+
+
+        </div>
+
+
+        <!-- ============================================= -->
+        <!-- RECOMMENDATIONS                              -->
+        <!-- ============================================= -->
+
+        <h3>
+            Recommendations
+        </h3>
+
+
+        <ul>
+
+            {% for recommendation in analysis.recommendations %}
+
+            <li>
+
+                {{ recommendation }}
+
+            </li>
+
+            {% endfor %}
+
+        </ul>
+
+
+        {% else %}
+
+
+        <p class="placeholder">
+
+            Analysis will appear here after
+            you submit a circuit.
+
+        </p>
+
+
+        {% endif %}
+
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- CIRCUIT DIAGRAM                                  -->
+    <!-- ================================================= -->
+
+    <section class="section">
+
+
+        <h2>
+            Circuit Diagram
+        </h2>
+
+
+        {% if analysis %}
+
+
+        <pre class="circuit-diagram">{{ analysis.diagram }}</pre>
+
+
+        {% else %}
+
+
+        <p class="placeholder">
+
+            The circuit diagram will appear here.
+
+        </p>
+
+
+        {% endif %}
+
+
+    </section>
+
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- JAVASCRIPT                                           -->
+<!-- ===================================================== -->
+
+<script>
+
+
+// ========================================================
+// CREATE CIRCUIT
+// ========================================================
+
+function createCircuit() {
+
+
+    const numberOfQubits =
+
+        parseInt(
+
+            document.getElementById(
+                "num_qubits"
+            ).value
+
+        );
+
+
+    if (
+        isNaN(numberOfQubits) ||
+        numberOfQubits < 1
+    ) {
+
+        alert(
+            "Please enter a valid number of qubits."
+        );
+
+        return;
+
+    }
+
+
+    const container =
+
+        document.getElementById(
+            "qubitContainer"
+        );
+
+
+    // Clear old qubits
+
+    container.innerHTML = "";
+
+
+    // Create new qubit cards
+
+    for (
+        let i = 0;
+        i < numberOfQubits;
+        i++
+    ) {
+
+        createQubitCard(i);
+
+    }
+
+}
+
+
+// ========================================================
+// CREATE QUBIT CARD
+// ========================================================
+
+function createQubitCard(qubitNumber) {
+
+
+    const container =
+
+        document.getElementById(
+            "qubitContainer"
+        );
+
+
+    const card =
+
+        document.createElement(
+            "div"
+        );
+
+
+    card.className =
+        "qubit-card";
+
+
+    card.id =
+        "qubit-" + qubitNumber;
+
+
+    card.innerHTML = `
+
+        <div class="qubit-title">
+
+            <h3>
+                Qubit ${qubitNumber}
+            </h3>
+
+        </div>
+
+
+        <div
+            class="gate-list"
+            id="gate-list-${qubitNumber}"
+        >
+
+        </div>
+
+
+        <button
+            type="button"
+            class="add-gate-button"
+            onclick="addGate(${qubitNumber})"
+        >
+
+            + Add Gate
+
+        </button>
+
+    `;
+
+
+    container.appendChild(card);
+
+
+    // Add one gate row initially
+
+    addGate(qubitNumber);
+
+}
+
+
+// ========================================================
+// ADD GATE
+// ========================================================
+
+function addGate(qubitNumber) {
+
+
+    const gateList =
+
+        document.getElementById(
+
+            "gate-list-" +
+            qubitNumber
+
+        );
+
+
+    const row =
+
+        document.createElement(
+            "div"
+        );
+
+
+    row.className =
+        "gate-row";
+
+
+    row.innerHTML = `
+
+        <div class="input-group">
+
+            <label>
+                Gate
+            </label>
+
+            <select
+                name="gate"
+                onchange="updateTarget(this)"
+            >
+
+                <option value="h">
+                    H
+                </option>
+
+                <option value="x">
+                    X
+                </option>
+
+                <option value="y">
+                    Y
+                </option>
+
+                <option value="z">
+                    Z
+                </option>
+
+                <option value="s">
+                    S
+                </option>
+
+                <option value="t">
+                    T
+                </option>
+
+                <option value="cx">
+                    CX
+                </option>
+
+                <option value="cz">
+                    CZ
+                </option>
+
+                <option value="swap">
+                    SWAP
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div
+            class="input-group target-group"
+            style="display: none;"
+        >
+
+            <label>
+                Target Qubit
+            </label>
+
+            <select name="q2">
+
+                ${createTargetOptions(qubitNumber)}
+
+            </select>
+
+        </div>
+
+
+        <input
+            type="hidden"
+            name="q1"
+            value="${qubitNumber}"
+        >
+
+
+        <button
+            type="button"
+            class="remove-button"
+            onclick="removeGate(this)"
+        >
+
+            Remove
+
+        </button>
+
+    `;
+
+
+    gateList.appendChild(row);
+
+}
+
+
+// ========================================================
+// CREATE TARGET OPTIONS
+// ========================================================
+
+function createTargetOptions(currentQubit) {
+
+
+    const numberOfQubits =
+
+        parseInt(
+
+            document.getElementById(
+                "num_qubits"
+            ).value
+
+        );
+
+
+    let options = "";
+
+
+    for (
+        let i = 0;
+        i < numberOfQubits;
+        i++
+    ) {
+
+
+        if (i !== currentQubit) {
+
+
+            options += `
+
+                <option value="${i}">
+                    Qubit ${i}
+                </option>
+
+            `;
+
+        }
+
+    }
+
+
+    return options;
+
+}
+
+
+// ========================================================
+// SHOW / HIDE TARGET
+// ========================================================
+
+function updateTarget(selectElement) {
+
+
+    const row =
+
+        selectElement.closest(
+            ".gate-row"
+        );
+
+
+    const targetGroup =
+
+        row.querySelector(
+            ".target-group"
+        );
+
+
+    const gate =
+        selectElement.value;
+
+
+    if (
+
+        gate === "cx" ||
+
+        gate === "cz" ||
+
+        gate === "swap"
+
+    ) {
+
+
+        targetGroup.style.display =
+            "flex";
+
+
+    }
+
+    else {
+
+
+        targetGroup.style.display =
+            "none";
+
+    }
+
+}
+
+
+// ========================================================
+// REMOVE GATE
+// ========================================================
+
+function removeGate(button) {
+
+
+    const row =
+
+        button.closest(
+            ".gate-row"
+        );
+
+
+    row.remove();
+
+}
+
+
+// ========================================================
+// CREATE DEFAULT CIRCUIT
+// ========================================================
+
+window.onload = function() {
+
+    createCircuit();
+
+};
+
+
+</script>
+
+
+</body>
+
+</html>
