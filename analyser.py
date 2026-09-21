@@ -1,66 +1,7 @@
 from qiskit import QuantumCircuit
 
 
-def analyse_circuit(num_qubits, gates):
-
-    # ========================================================
-    # CREATE QISKIT CIRCUIT
-    # ========================================================
-
-    qc = QuantumCircuit(num_qubits)
-
-    # ========================================================
-    # ADD USER'S GATES TO THE CIRCUIT
-    # ========================================================
-
-    for gate in gates:
-
-        gate_type = gate["gate"]
-        q1 = gate["q1"]
-
-        # ----------------------------------------------------
-        # SINGLE-QUBIT GATES
-        # ----------------------------------------------------
-
-        if gate_type == "h":
-            qc.h(q1)
-
-        elif gate_type == "x":
-            qc.x(q1)
-
-        elif gate_type == "y":
-            qc.y(q1)
-
-        elif gate_type == "z":
-            qc.z(q1)
-
-        elif gate_type == "s":
-            qc.s(q1)
-
-        elif gate_type == "t":
-            qc.t(q1)
-
-        # ----------------------------------------------------
-        # TWO-QUBIT GATES
-        # ----------------------------------------------------
-
-        elif gate_type == "cx":
-
-            q2 = gate["q2"]
-
-            qc.cx(q1, q2)
-
-        elif gate_type == "cz":
-
-            q2 = gate["q2"]
-
-            qc.cz(q1, q2)
-
-        elif gate_type == "swap":
-
-            q2 = gate["q2"]
-
-            qc.swap(q1, q2)
+def analyse_circuit(qc):
 
     # ========================================================
     # BASIC CIRCUIT INFORMATION
@@ -79,33 +20,31 @@ def analyse_circuit(num_qubits, gates):
     # ========================================================
 
     single_qubit_gates = 0
-
     multi_qubit_gates = 0
 
     for instruction in qc.data:
 
-        number_of_gate_qubits = len(
-            instruction.qubits
-        )
+        number_of_gate_qubits = len(instruction.qubits)
 
         if number_of_gate_qubits == 1:
-
             single_qubit_gates += 1
 
         elif number_of_gate_qubits >= 2:
-
             multi_qubit_gates += 1
 
     # ========================================================
     # COUNT ENTANGLING GATES
     # ========================================================
 
+    # CX and CZ are counted as entangling gates.
+    # SWAP is a two-qubit gate but does not itself create
+    # entanglement.
+
     entangling_gates = 0
 
-    for gate_name in ["cx", "cz", "swap"]:
+    for gate_name in ["cx", "cz"]:
 
         if gate_name in gate_counts:
-
             entangling_gates += gate_counts[gate_name]
 
     # ========================================================
@@ -113,15 +52,12 @@ def analyse_circuit(num_qubits, gates):
     # ========================================================
 
     if circuit_depth <= 3:
-
         complexity = "Low"
 
     elif circuit_depth <= 10:
-
         complexity = "Medium"
 
     else:
-
         complexity = "High"
 
     # ========================================================
@@ -162,15 +98,13 @@ def analyse_circuit(num_qubits, gates):
         )
 
     # ========================================================
-    # CREATE TEXT CIRCUIT DIAGRAM
+    # CIRCUIT DIAGRAM
     # ========================================================
 
-    diagram = str(
-        qc.draw(output="text")
-    )
+    diagram = str(qc.draw(output="text"))
 
     # ========================================================
-    # RETURN ANALYSIS
+    # RETURN RESULTS
     # ========================================================
 
     return {
@@ -183,21 +117,15 @@ def analyse_circuit(num_qubits, gates):
 
         "gate_counts": gate_counts,
 
-        "single_qubit_gates":
-            single_qubit_gates,
+        "single_qubit_gates": single_qubit_gates,
 
-        "multi_qubit_gates":
-            multi_qubit_gates,
+        "multi_qubit_gates": multi_qubit_gates,
 
-        "entangling_gates":
-            entangling_gates,
+        "entangling_gates": entangling_gates,
 
-        "complexity":
-            complexity,
+        "complexity": complexity,
 
-        "recommendations":
-            recommendations,
+        "recommendations": recommendations,
 
-        "diagram":
-            diagram
+        "diagram": diagram
     }

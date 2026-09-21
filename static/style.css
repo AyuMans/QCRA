@@ -1,63 +1,109 @@
-/* ========================================================
+/* ============================================================
    GENERAL
-   ======================================================== */
+   ============================================================ */
 
 body {
 
-    font-family: Arial, sans-serif;
-
-    background: #f4f4f4;
-
     margin: 0;
 
-    padding: 30px;
+    padding: 0;
 
-    color: #222;
+    font-family: Arial, sans-serif;
+
+    background: #f2f2f2;
 
 }
 
-
-/* ========================================================
-   MAIN CONTAINER
-   ======================================================== */
 
 .container {
 
-    max-width: 1000px;
+    width: 90%;
 
-    margin: auto;
+    max-width: 1100px;
+
+    margin: 30px auto;
 
 }
 
 
-/* ========================================================
+/* ============================================================
    HEADER
-   ======================================================== */
+   ============================================================ */
 
 header {
 
     text-align: center;
 
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 
 }
+
 
 header h1 {
 
-    margin-bottom: 5px;
-
-}
-
-header p {
-
-    color: #666;
+    margin-bottom: 10px;
 
 }
 
 
-/* ========================================================
+/* ============================================================
+   TABS
+   ============================================================ */
+
+.tabs {
+
+    display: flex;
+
+    margin-bottom: 20px;
+
+    border-bottom: 1px solid #ccc;
+
+}
+
+
+.tab-button {
+
+    padding: 14px 25px;
+
+    border: none;
+
+    background: #ddd;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+}
+
+
+.tab-button:first-child {
+
+    border-radius: 8px 0 0 0;
+
+}
+
+
+.tab-button:last-child {
+
+    border-radius: 0 8px 0 0;
+
+}
+
+
+.tab-button.active {
+
+    background: #333;
+
+    color: white;
+
+}
+
+
+/* ============================================================
    SECTIONS
-   ======================================================== */
+   ============================================================ */
 
 .section {
 
@@ -67,16 +113,23 @@ header p {
 
     margin-bottom: 20px;
 
-    border: 1px solid #ddd;
+    border-radius: 10px;
 
-    border-radius: 8px;
+    border: 1px solid #ddd;
 
 }
 
 
-/* ========================================================
-   QUBIT SETUP
-   ======================================================== */
+.description {
+
+    color: #555;
+
+}
+
+
+/* ============================================================
+   BUILDER
+   ============================================================ */
 
 .qubit-setup {
 
@@ -86,182 +139,193 @@ header p {
 
     gap: 10px;
 
-    margin-bottom: 25px;
-
-}
-
-
-.qubit-setup label {
-
-    font-weight: bold;
+    margin-bottom: 20px;
 
 }
 
 
 .qubit-setup input {
 
-    width: 60px;
+    width: 70px;
 
     padding: 8px;
 
-    border: 1px solid #bbb;
-
-    border-radius: 4px;
-
 }
 
 
-/* ========================================================
-   QUBIT CARD
-   ======================================================== */
-
-.qubit-card {
-
-    border: 1px solid #ccc;
-
-    border-radius: 6px;
-
-    padding: 15px;
-
-    margin-bottom: 15px;
-
-    background: #fafafa;
-
-}
-
-
-.qubit-title {
-
-    border-bottom: 1px solid #ddd;
-
-    margin-bottom: 15px;
-
-}
-
-
-.qubit-title h3 {
-
-    margin-top: 0;
-
-}
-
-
-/* ========================================================
-   GATE ROW
-   ======================================================== */
-
-.gate-row {
-
-    display: flex;
-
-    align-items: end;
-
-    gap: 12px;
-
-    padding: 10px;
-
-    margin-bottom: 10px;
-
-    background: white;
-
-    border: 1px solid #ddd;
-
-    border-radius: 5px;
-
-}
-
-
-.input-group {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 5px;
-
-}
-
-
-.input-group label {
-
-    font-size: 13px;
-
-    color: #555;
-
-}
-
-
-.input-group select {
-
-    padding: 8px;
-
-    border: 1px solid #bbb;
-
-    border-radius: 4px;
-
-    min-width: 100px;
-
-}
-
-
-/* ========================================================
-   BUTTONS
-   ======================================================== */
-
-button {
+.qubit-setup button {
 
     padding: 9px 15px;
-
-    border: 1px solid #aaa;
-
-    border-radius: 5px;
-
-    background: #eee;
 
     cursor: pointer;
 
 }
 
 
-button:hover {
+/* ============================================================
+   QUBIT CARDS
+   ============================================================ */
 
-    background: #ddd;
+.qubit-card {
+
+    background: #fafafa;
+
+    border: 1px solid #ddd;
+
+    border-radius: 8px;
+
+    padding: 15px;
+
+    margin-bottom: 15px;
+
+}
+
+
+.qubit-card h3 {
+
+    margin-top: 0;
+
+}
+
+
+/* ============================================================
+   GATE ROW
+   ============================================================ */
+
+.gate-row {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-bottom: 10px;
+
+    flex-wrap: wrap;
+
+}
+
+
+.gate-row select {
+
+    padding: 8px;
 
 }
 
 
 .add-gate-button {
 
-    margin-top: 5px;
+    padding: 8px 15px;
+
+    cursor: pointer;
 
 }
 
+
+.remove-button {
+
+    padding: 7px 12px;
+
+    cursor: pointer;
+
+}
+
+
+/* ============================================================
+   ANALYSE BUTTON
+   ============================================================ */
 
 .analyse-button {
 
     margin-top: 15px;
 
-    padding: 12px 20px;
+    padding: 12px 25px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    cursor: pointer;
 
     font-weight: bold;
 
+    font-size: 15px;
+
 }
 
 
-/* ========================================================
-   REMOVE BUTTON
-   ======================================================== */
+/* ============================================================
+   CODE INPUT
+   ============================================================ */
 
-.remove-button {
+textarea {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 15px;
+
+    margin-top: 10px;
+
+    font-family: monospace;
+
+    font-size: 15px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    resize: vertical;
+
+}
+
+
+.code-example {
+
+    margin-top: 15px;
+
+}
+
+
+.code-example pre {
 
     background: #f5f5f5;
 
+    padding: 15px;
+
+    border-radius: 6px;
+
+    overflow-x: auto;
+
+    font-family: monospace;
+
 }
 
 
-/* ========================================================
-   ANALYSIS
-   ======================================================== */
+/* ============================================================
+   ERROR
+   ============================================================ */
+
+.error {
+
+    background: #ffe5e5;
+
+    border: 1px solid #ff9999;
+
+    padding: 15px;
+
+    margin-bottom: 20px;
+
+    border-radius: 8px;
+
+}
+
+
+/* ============================================================
+   ANALYSIS METRICS
+   ============================================================ */
 
 .metrics {
 
@@ -270,38 +334,43 @@ button:hover {
     grid-template-columns:
         repeat(2, 1fr);
 
-    gap: 10px;
+    gap: 15px;
 
 }
 
 
 .metric {
 
-    display: flex;
-
-    justify-content: space-between;
-
-    padding: 12px;
+    padding: 15px;
 
     border: 1px solid #ddd;
 
-    border-radius: 5px;
+    border-radius: 8px;
 
     background: #fafafa;
 
 }
 
 
-.metric strong {
+.metric h3 {
 
-    font-size: 18px;
+    margin-top: 0;
 
 }
 
 
-/* ========================================================
+.metric p {
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+}
+
+
+/* ============================================================
    GATE FREQUENCY
-   ======================================================== */
+   ============================================================ */
 
 .gate-frequency {
 
@@ -309,116 +378,99 @@ button:hover {
 
     flex-wrap: wrap;
 
-    gap: 10px;
+    gap: 15px;
 
 }
 
 
-.frequency-item {
+.gate-card {
 
-    padding: 10px 15px;
-
-    border: 1px solid #ccc;
-
-    border-radius: 5px;
-
-    background: #fafafa;
-
-}
-
-
-.frequency-item strong {
-
-    margin-left: 10px;
-
-}
-
-
-/* ========================================================
-   CIRCUIT DIAGRAM
-   ======================================================== */
-
-.circuit-diagram {
-
-    background: #f7f7f7;
+    padding: 15px 25px;
 
     border: 1px solid #ddd;
 
+    border-radius: 8px;
+
+    background: #fafafa;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 8px;
+
+}
+
+
+.gate-card span {
+
+    font-size: 20px;
+
+    font-weight: bold;
+
+}
+
+
+/* ============================================================
+   CIRCUIT DIAGRAM
+   ============================================================ */
+
+.circuit {
+
     padding: 20px;
+
+    background: #f5f5f5;
+
+    border-radius: 8px;
 
     overflow-x: auto;
 
     font-family: monospace;
 
-    font-size: 14px;
+    white-space: pre;
 
 }
 
 
-/* ========================================================
-   ERROR
-   ======================================================== */
-
-.error {
-
-    background: #ffe6e6;
-
-    border: 1px solid #ffaaaa;
-
-    padding: 15px;
-
-    margin-bottom: 20px;
-
-    border-radius: 5px;
-
-}
-
-
-/* ========================================================
-   PLACEHOLDER
-   ======================================================== */
-
-.placeholder {
-
-    color: #777;
-
-}
-
-
-/* ========================================================
+/* ============================================================
    MOBILE
-   ======================================================== */
+   ============================================================ */
 
 @media (max-width: 700px) {
 
-    body {
+    .metrics {
 
-        padding: 15px;
+        grid-template-columns: 1fr;
 
     }
 
 
-    .gate-row {
+    .container {
 
-        flex-direction: column;
-
-        align-items: stretch;
+        width: 95%;
 
     }
 
 
     .qubit-setup {
 
-        flex-direction: column;
-
-        align-items: flex-start;
+        flex-wrap: wrap;
 
     }
 
 
-    .metrics {
+    .tabs {
 
-        grid-template-columns: 1fr;
+        flex-direction: column;
+
+    }
+
+
+    .tab-button {
+
+        border-radius: 0 !important;
 
     }
 
