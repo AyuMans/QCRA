@@ -1,197 +1,125 @@
+
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Quantum Circuit Analyser</title>
-
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Circuit Resource Analyser</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
-
 <body>
-
-
 <div class="container">
 
-
-    <!-- ====================================================
-         HEADER
-         ==================================================== -->
-
     <header>
-
-        <h1>QUANTUM CIRCUIT ANALYSER</h1>
-
-        <p>
-            Build a quantum circuit or analyse Qiskit code.
-        </p>
-
+        <h1>Quantum Circuit Resource Analyser</h1>
+        <p>Analyse quantum circuits and understand their resource requirements.</p>
     </header>
 
-
-    <!-- ====================================================
-         TABS
-         ==================================================== -->
-
+    <!-- TABS -->
     <div class="tabs">
-
-
         <button
+            type="button"
             class="tab-button {% if active_tab == 'builder' %}active{% endif %}"
+            id="builder-tab"
             onclick="showTab('builder')">
-
             Circuit Builder
-
         </button>
-
 
         <button
+            type="button"
             class="tab-button {% if active_tab == 'code' %}active{% endif %}"
+            id="code-tab"
             onclick="showTab('code')">
-
             Code Analyser
-
         </button>
-
-
     </div>
 
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
 
-    <!-- ====================================================
-         CIRCUIT BUILDER TAB
-         ==================================================== -->
+    <div class="dashboard-layout">
 
-    <div
-        id="builderTab"
-        class="tab-content"
-        style="{% if active_tab != 'builder' %}display:none;{% endif %}">
+        <!-- LEFT COLUMN: INPUTS -->
+        <div class="input-column">
 
+            <!-- CIRCUIT BUILDER -->
+            <div
+                id="builder-content"
+                class="tab-content"
+                {% if active_tab != 'builder' %}style="display:none"{% endif %}>
 
-        <section class="section">
+                <section class="section">
+                    <h2>Circuit Builder</h2>
 
+                    <p class="description">
+                        Select the number of qubits and add gates to construct
+                        your quantum circuit.
+                    </p>
 
-            <h2>Build Circuit</h2>
+                    <form method="POST" id="builder-form">
+                        <input type="hidden" name="form_type" value="builder">
 
+                        <div class="qubit-setup">
+                            <label for="num_qubits">Number of Qubits:</label>
 
-            <form method="POST"
-                  id="builderForm">
+                            <input
+                                type="number"
+                                id="num_qubits"
+                                name="num_qubits"
+                                min="1"
+                                max="20"
+                                value="{{ num_qubits }}"
+                                required>
 
+                            <button type="button" onclick="createCircuit()">
+                                Create Circuit
+                            </button>
+                        </div>
 
-                <input
-                    type="hidden"
-                    name="form_type"
-                    value="builder">
+                        <div id="circuit-container"></div>
 
+                        <button type="submit" class="analyse-button">
+                            Analyse Circuit
+                        </button>
+                    </form>
+                </section>
+            </div>
 
-                <!-- NUMBER OF QUBITS -->
+            <!-- CODE ANALYSER -->
+            <div
+                id="code-content"
+                class="tab-content"
+                {% if active_tab != 'code' %}style="display:none"{% endif %}>
 
-                <div class="qubit-setup">
+                <section class="section">
+                    <h2>Code Analyser</h2>
 
+                    <p class="description">
+                        Enter Python code that creates a Qiskit QuantumCircuit.
+                    </p>
 
-                    <label for="num_qubits">
+                    <form method="POST">
+                        <input type="hidden" name="form_type" value="code">
 
-                        Number of Qubits:
+                        <label for="code">Qiskit Code:</label>
 
-                    </label>
+                        <textarea
+                            id="code"
+                            name="code"
+                            rows="12"
+                            placeholder="Enter your Qiskit code here...">{{ code }}</textarea>
 
+                        <button type="submit" class="analyse-button">
+                            Analyse Code
+                        </button>
+                    </form>
 
-                    <input
-                        type="number"
-                        id="num_qubits"
-                        name="num_qubits"
-                        min="1"
-                        value="{{ num_qubits }}">
+                    <div class="code-example">
+                        <h3>Example Code</h3>
 
-
-                    <button
-                        type="button"
-                        onclick="createCircuit()">
-
-                        Create Circuit
-
-                    </button>
-
-
-                </div>
-
-
-                <!-- DYNAMIC CIRCUIT -->
-
-                <div id="qubitContainer"></div>
-
-
-                <button
-                    type="submit"
-                    class="analyse-button">
-
-                    ANALYSE CIRCUIT
-
-                </button>
-
-
-            </form>
-
-
-        </section>
-
-
-    </div>
-
-
-    <!-- ====================================================
-         CODE ANALYSER TAB
-         ==================================================== -->
-
-    <div
-        id="codeTab"
-        class="tab-content"
-        style="{% if active_tab != 'code' %}display:none;{% endif %}">
-
-
-        <section class="section">
-
-
-            <h2>Qiskit Code Analyser</h2>
-
-
-            <p class="description">
-
-                Enter a complete Qiskit program that creates
-                a QuantumCircuit.
-
-            </p>
-
-
-            <form method="POST">
-
-
-                <input
-                    type="hidden"
-                    name="form_type"
-                    value="code">
-
-
-                <textarea
-                    name="code"
-                    id="code"
-                    rows="18"
-                    placeholder="Enter your Qiskit code here...">{{ code }}</textarea>
-
-
-                <div class="code-example">
-
-                    <strong>Example:</strong>
-
-                    <pre>from qiskit import QuantumCircuit
+                        <pre><code>from qiskit import QuantumCircuit
 
 qc = QuantumCircuit(3)
 
@@ -199,611 +127,306 @@ qc.h(0)
 qc.cx(0, 1)
 qc.x(2)
 qc.cz(1, 2)
-qc.swap(0, 2)</pre>
+qc.swap(0, 2)</code></pre>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: RESULTS -->
+        <div class="output-column">
+
+            {% if analysis %}
+
+            <!-- ANALYSIS -->
+            <section class="section results-section">
+                <h2>Analysis</h2>
+
+                <div class="metrics">
+
+                    <div class="metric">
+                        <h3>Qubits</h3>
+                        <p>{{ analysis.qubits }}</p>
+                    </div>
+
+                    <div class="metric">
+                        <h3>Total Operations</h3>
+                        <p>{{ analysis.operations }}</p>
+                    </div>
+
+                    <div class="metric">
+                        <h3>Circuit Depth</h3>
+                        <p>{{ analysis.depth }}</p>
+                    </div>
+
+                    <div class="metric">
+                        <h3>Single-Qubit Gates</h3>
+                        <p>{{ analysis.single_qubit_gates }}</p>
+                    </div>
+
+                    <div class="metric">
+                        <h3>Multi-Qubit Gates</h3>
+                        <p>{{ analysis.multi_qubit_gates }}</p>
+                    </div>
+
+                    <div class="metric">
+                        <h3>Entangling Gates</h3>
+                        <p>{{ analysis.entangling_gates }}</p>
+                    </div>
+
+                    <div class="metric">
+                        <h3>Complexity</h3>
+                        <p>{{ analysis.complexity }}</p>
+                    </div>
+
+                    <!-- GATE FREQUENCY: SAME GRID AS METRICS -->
+                    <div class="gate-frequency-box">
+                        <h3>Gate Frequency</h3>
+
+                        <div class="gate-frequency">
+                            {% for gate, count in analysis.gate_counts.items() %}
+                            <div class="gate-item">
+                                <span class="gate-name">{{ gate.upper() }}</span>
+                                <span class="gate-count">{{ count }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
 
                 </div>
+            </section>
 
+            <!-- RECOMMENDATIONS -->
+            <section class="section results-section">
+                <h2>Recommendations</h2>
 
-                <button
-                    type="submit"
-                    class="analyse-button">
+                <ul>
+                    {% for recommendation in analysis.recommendations %}
+                    <li>{{ recommendation }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
 
-                    ANALYSE CODE
+            <!-- CIRCUIT DIAGRAM -->
+            <section class="section diagram-section">
+                <h2>Circuit Diagram</h2>
+                <pre class="circuit">{{ analysis.diagram }}</pre>
+            </section>
 
-                </button>
+            {% else %}
 
+            <section class="section empty-results">
+                <h2>Analysis Results</h2>
 
-            </form>
+                <p>
+                    Build a circuit or enter Qiskit code, then click Analyse
+                    to view the resource metrics and circuit diagram.
+                </p>
+            </section>
 
+            <section class="section empty-diagram">
+                <h2>Circuit Diagram</h2>
 
-        </section>
+                <p>
+                    The circuit diagram will appear here after analysis.
+                </p>
+            </section>
 
+            {% endif %}
 
+        </div>
     </div>
-
-
-    <!-- ====================================================
-         ERROR
-         ==================================================== -->
-
-    {% if error %}
-
-    <section class="error">
-
-        <strong>Error:</strong>
-
-        {{ error }}
-
-    </section>
-
-    {% endif %}
-
-
-    <!-- ====================================================
-         ANALYSIS RESULTS
-         ==================================================== -->
-
-    {% if analysis %}
-
-
-    <section class="section">
-
-
-        <h2>Analysis</h2>
-
-
-        <div class="metrics">
-
-
-            <div class="metric">
-
-                <h3>Qubits</h3>
-
-                <p>
-                    {{ analysis.qubits }}
-                </p>
-
-            </div>
-
-
-            <div class="metric">
-
-                <h3>Total Operations</h3>
-
-                <p>
-                    {{ analysis.operations }}
-                </p>
-
-            </div>
-
-
-            <div class="metric">
-
-                <h3>Circuit Depth</h3>
-
-                <p>
-                    {{ analysis.depth }}
-                </p>
-
-            </div>
-
-
-            <div class="metric">
-
-                <h3>Single-Qubit Gates</h3>
-
-                <p>
-                    {{ analysis.single_qubit_gates }}
-                </p>
-
-            </div>
-
-
-            <div class="metric">
-
-                <h3>Multi-Qubit Gates</h3>
-
-                <p>
-                    {{ analysis.multi_qubit_gates }}
-                </p>
-
-            </div>
-
-
-            <div class="metric">
-
-                <h3>Entangling Gates</h3>
-
-                <p>
-                    {{ analysis.entangling_gates }}
-                </p>
-
-            </div>
-
-
-            <div class="metric">
-
-                <h3>Complexity</h3>
-
-                <p>
-                    {{ analysis.complexity }}
-                </p>
-
-            </div>
-
-
-        </div>
-
-
-    </section>
-
-
-    <!-- ====================================================
-         GATE FREQUENCY
-         ==================================================== -->
-
-    <section class="section">
-
-
-        <h2>Gate Frequency</h2>
-
-
-        <div class="gate-frequency">
-
-
-            {% for gate, count in analysis.gate_counts.items() %}
-
-
-            <div class="gate-card">
-
-                <strong>
-                    {{ gate.upper() }}
-                </strong>
-
-                <span>
-                    {{ count }}
-                </span>
-
-            </div>
-
-
-            {% endfor %}
-
-
-        </div>
-
-
-    </section>
-
-
-    <!-- ====================================================
-         RECOMMENDATIONS
-         ==================================================== -->
-
-    <section class="section">
-
-
-        <h2>Recommendations</h2>
-
-
-        <ul>
-
-
-            {% for recommendation in analysis.recommendations %}
-
-            <li>
-
-                {{ recommendation }}
-
-            </li>
-
-            {% endfor %}
-
-
-        </ul>
-
-
-    </section>
-
-
-    <!-- ====================================================
-         CIRCUIT DIAGRAM
-         ==================================================== -->
-
-    <section class="section">
-
-
-        <h2>Circuit Diagram</h2>
-
-
-        <pre class="circuit">{{ analysis.diagram }}</pre>
-
-
-    </section>
-
-
-    {% endif %}
-
-
 </div>
 
-
-<!-- ========================================================
-     JAVASCRIPT
-     ======================================================== -->
-
 <script>
+    // Switch between Circuit Builder and Code Analyser.
+    function showTab(tabName) {
+        const builderContent = document.getElementById("builder-content");
+        const codeContent = document.getElementById("code-content");
+        const builderTab = document.getElementById("builder-tab");
+        const codeTab = document.getElementById("code-tab");
 
+        builderContent.style.display =
+            tabName === "builder" ? "block" : "none";
 
-/* ==========================================================
-   TAB SWITCHING
-   ========================================================== */
+        codeContent.style.display =
+            tabName === "code" ? "block" : "none";
 
-function showTab(tabName) {
-
-
-    const builderTab =
-        document.getElementById("builderTab");
-
-
-    const codeTab =
-        document.getElementById("codeTab");
-
-
-    const buttons =
-        document.querySelectorAll(".tab-button");
-
-
-    if (tabName === "builder") {
-
-        builderTab.style.display = "block";
-
-        codeTab.style.display = "none";
-
-        buttons[0].classList.add("active");
-
-        buttons[1].classList.remove("active");
-
+        builderTab.classList.toggle("active", tabName === "builder");
+        codeTab.classList.toggle("active", tabName === "code");
     }
 
+    // Build the selected number of qubits.
+    // Each qubit starts with one H gate.
+    function createCircuit() {
+        const input = document.getElementById("num_qubits");
+        const container = document.getElementById("circuit-container");
 
-    else {
+        const numQubits = Number.parseInt(input.value, 10);
 
-        builderTab.style.display = "none";
-
-        codeTab.style.display = "block";
-
-        buttons[0].classList.remove("active");
-
-        buttons[1].classList.add("active");
-
-    }
-
-}
-
-
-/* ==========================================================
-   CREATE CIRCUIT
-   ========================================================== */
-
-function createCircuit() {
-
-
-    const numberOfQubits =
-        parseInt(
-            document.getElementById("num_qubits").value
-        );
-
-
-    const container =
-        document.getElementById("qubitContainer");
-
-
-    container.innerHTML = "";
-
-
-    if (numberOfQubits < 1) {
-
-        return;
-
-    }
-
-
-    for (
-        let qubit = 0;
-        qubit < numberOfQubits;
-        qubit++
-    ) {
-
-        createQubitCard(qubit);
-
-    }
-
-}
-
-
-/* ==========================================================
-   CREATE QUBIT CARD
-   ========================================================== */
-
-function createQubitCard(qubitNumber) {
-
-
-    const container =
-        document.getElementById("qubitContainer");
-
-
-    const card =
-        document.createElement("div");
-
-
-    card.className = "qubit-card";
-
-
-    card.dataset.qubit =
-        qubitNumber;
-
-
-    card.innerHTML = `
-
-        <h3>Qubit ${qubitNumber}</h3>
-
-        <div class="gate-container">
-
-        </div>
-
-        <button
-            type="button"
-            class="add-gate-button"
-            onclick="addGate(${qubitNumber})">
-
-            + Add Gate
-
-        </button>
-
-    `;
-
-
-    container.appendChild(card);
-
-
-    addGate(qubitNumber);
-
-}
-
-
-/* ==========================================================
-   ADD GATE
-   ========================================================== */
-
-function addGate(qubitNumber) {
-
-
-    const cards =
-        document.querySelectorAll(".qubit-card");
-
-
-    let currentCard = null;
-
-
-    cards.forEach(function(card) {
-
-        if (
-            parseInt(card.dataset.qubit)
-            === qubitNumber
-        ) {
-
-            currentCard = card;
-
+        if (!Number.isInteger(numQubits) || numQubits < 1) {
+            alert("Please enter at least 1 qubit.");
+            return;
         }
 
-    });
+        if (numQubits > 20) {
+            alert("Please use 20 qubits or fewer in this prototype.");
+            return;
+        }
 
+        container.innerHTML = "";
 
-    if (!currentCard) {
-
-        return;
-
+        for (let i = 0; i < numQubits; i++) {
+            const card = createQubitCard(i, numQubits);
+            container.appendChild(card);
+            addGate(i, numQubits, "h");
+        }
     }
 
-
-    const gateContainer =
-        currentCard.querySelector(
-            ".gate-container"
-        );
-
-
-    const row =
-        document.createElement("div");
-
-
-    row.className = "gate-row";
-
-
-    row.innerHTML = `
-
-        <input
-            type="hidden"
-            name="q1"
-            value="${qubitNumber}">
-
-
-        <select
-            name="gate"
-            onchange="updateTarget(this)">
-
-            <option value="h">H</option>
-
-            <option value="x">X</option>
-
-            <option value="y">Y</option>
-
-            <option value="z">Z</option>
-
-            <option value="s">S</option>
-
-            <option value="t">T</option>
-
-            <option value="cx">CX</option>
-
-            <option value="cz">CZ</option>
-
-            <option value="swap">SWAP</option>
-
-        </select>
-
-
-		<span class="target-container">
-		    <input type="hidden" name="q2" value="">
-		</span>
-
-
-        <button
-            type="button"
-            class="remove-button"
-            onclick="removeGate(this)">
-
-            Remove
-
-        </button>
-
-    `;
-
-
-    gateContainer.appendChild(row);
-
-}
-
-
-/* ==========================================================
-   TARGET OPTIONS
-   ========================================================== */
-
-   function createTargetOptions(currentQubit) {
-
-       const numberOfQubits =
-           parseInt(
-               document.getElementById("num_qubits").value
-           );
-
-       let options = `
-
-           <select name="q2">
-
-               <option value="">
-                   Target Qubit
-               </option>
-
-       `;
-
-       for (
-           let i = 0;
-           i < numberOfQubits;
-           i++
-       ) {
-
-           if (i !== currentQubit) {
-
-               options += `
-
-                   <option value="${i}">
-                       Qubit ${i}
-                   </option>
-
-               `;
-
-           }
-
-       }
-
-       options += `
-
-           </select>
-
-       `;
-
-       return options;
-   }
-
-
-/* ==========================================================
-   UPDATE TARGET
-   ========================================================== */
-
-   function updateTarget(selectElement) {
-
-       const row =
-           selectElement.closest(".gate-row");
-
-       const targetContainer =
-           row.querySelector(".target-container");
-
-       const currentQubit =
-           parseInt(
-               row.querySelector(
-                   'input[name="q1"]'
-               ).value
-           );
-
-       const gate =
-           selectElement.value;
-
-
-       if (
-           gate === "cx" ||
-           gate === "cz" ||
-           gate === "swap"
-       ) {
-
-           targetContainer.innerHTML =
-               createTargetOptions(
-                   currentQubit
-               );
-
-       }
-
-       else {
-
-           targetContainer.innerHTML = `
-
-               <input
-                   type="hidden"
-                   name="q2"
-                   value="">
-
-           `;
-
-       }
-   }
-
-/* ==========================================================
-   REMOVE GATE
-   ========================================================== */
-
-function removeGate(button) {
-
-    const row =
-        button.closest(".gate-row");
-
-
-    row.remove();
-
-}
-
-
-/* ==========================================================
-   PAGE LOAD
-   ========================================================== */
-
-window.onload = function() {
-
-    createCircuit();
-
-};
+    // Create one qubit card.
+    function createQubitCard(qubitIndex, numQubits) {
+        const card = document.createElement("div");
+        card.className = "qubit-card";
+
+        const heading = document.createElement("h3");
+        heading.textContent = "Qubit " + qubitIndex;
+        card.appendChild(heading);
+
+        const gatesContainer = document.createElement("div");
+        gatesContainer.className = "gates-container";
+        gatesContainer.id = "gates-" + qubitIndex;
+        card.appendChild(gatesContainer);
+
+        const addButton = document.createElement("button");
+        addButton.type = "button";
+        addButton.className = "add-gate-button";
+        addButton.textContent = "+ Add Gate";
+
+        addButton.addEventListener("click", function () {
+            addGate(qubitIndex, numQubits);
+        });
+
+        card.appendChild(addButton);
+
+        return card;
+    }
+
+    // Add a gate to a qubit card.
+    // Single-qubit gates have no qubit dropdown.
+    // CX, CZ and SWAP show a target dropdown.
+    function addGate(qubitIndex, numQubits, defaultGate = "h") {
+        const container = document.getElementById("gates-" + qubitIndex);
+        const row = document.createElement("div");
+        row.className = "gate-row";
+
+        // Submit the owning qubit invisibly to Flask.
+        const qubitInput = document.createElement("input");
+        qubitInput.type = "hidden";
+        qubitInput.name = "q1";
+        qubitInput.value = qubitIndex;
+        qubitInput.setAttribute("form", "builder-form");
+        row.appendChild(qubitInput);
+
+        // Gate dropdown.
+        const gateSelect = document.createElement("select");
+        gateSelect.name = "gate";
+        gateSelect.setAttribute("form", "builder-form");
+        gateSelect.required = true;
+
+        const gateOptions = [
+            ["h", "H"],
+            ["x", "X"],
+            ["y", "Y"],
+            ["z", "Z"],
+            ["s", "S"],
+            ["t", "T"],
+            ["cx", "CX"],
+            ["cz", "CZ"],
+            ["swap", "SWAP"]
+        ];
+
+        gateOptions.forEach(function (gate) {
+            const option = document.createElement("option");
+            option.value = gate[0];
+            option.textContent = gate[1];
+            option.selected = gate[0] === defaultGate;
+            gateSelect.appendChild(option);
+        });
+
+        row.appendChild(gateSelect);
+
+        // Target dropdown.
+        const targetContainer = document.createElement("span");
+        targetContainer.className = "target-container";
+
+        const targetSelect = document.createElement("select");
+        targetSelect.name = "q2";
+        targetSelect.setAttribute("form", "builder-form");
+
+        for (let i = 0; i < numQubits; i++) {
+            if (i === qubitIndex) {
+                continue;
+            }
+
+            const option = document.createElement("option");
+            option.value = i;
+            option.textContent = "Target Qubit " + i;
+            targetSelect.appendChild(option);
+        }
+
+        targetContainer.appendChild(targetSelect);
+        row.appendChild(targetContainer);
+
+        // Remove button.
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "remove-button";
+        removeButton.textContent = "Remove";
+
+        removeButton.addEventListener("click", function () {
+            row.remove();
+        });
+
+        row.appendChild(removeButton);
+
+        // Only two-qubit gates need a target.
+        function updateTargetVisibility() {
+            const needsTarget =
+                ["cx", "cz", "swap"].includes(gateSelect.value);
+
+            targetContainer.style.display =
+                needsTarget ? "inline-flex" : "none";
+
+            targetSelect.disabled = !needsTarget;
+            targetSelect.required = needsTarget;
+        }
+
+        gateSelect.addEventListener("change", updateTargetVisibility);
+
+        container.appendChild(row);
+        updateTargetVisibility();
+    }
+
+    // Initialize the builder and restore the selected tab.
+    
+    window.addEventListener("DOMContentLoaded", function () {
+        createCircuit();
+
+        const activeTab = "{{ active_tab }}";
+        showTab(activeTab === "code" ? "code" : "builder");
+
+        const qubitInput = document.getElementById("num_qubits");
+
+        qubitInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                createCircuit();
+            }
+        });
+    });
 
 </script>
 
-
 </body>
-
 </html>
