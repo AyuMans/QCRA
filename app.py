@@ -140,72 +140,45 @@ def index():
                     )
 
 
+                
                 gate_names = request.form.getlist("gate")
-
                 q1_values = request.form.getlist("q1")
-
                 q2_values = request.form.getlist("q2")
 
+                if len(gate_names) != len(q1_values):
+                    raise ValueError(
+                        "Gate information is incomplete. Please rebuild the circuit."
+                    )
 
-                for i in range(len(gate_names)):
+                target_index = 0
 
-                    gate_name = gate_names[i]
-
+                for i, gate_name in enumerate(gate_names):
                     q1 = int(q1_values[i])
 
-
                     if q1 < 0 or q1 >= num_qubits:
+                        raise ValueError(f"Invalid qubit number: {q1}")
 
-                        raise ValueError(
-                            f"Invalid qubit number: {q1}"
-                        )
+                    gate = {"gate": gate_name, "q1": q1}
 
+                    if gate_name in ["cx", "cz", "swap"]:
+                        if target_index >= len(q2_values):
+                            raise ValueError("Please select a target qubit.")
 
-                    gate = {
-
-                        "gate": gate_name,
-
-                        "q1": q1
-
-                    }
-
-
-                    # Two-qubit gates
-
-                    if gate_name in [
-                        "cx",
-                        "cz",
-                        "swap"
-                    ]:
-
-                        if i >= len(q2_values):
-
-                            raise ValueError(
-                                "Target qubit is missing."
-                            )
-
-                        q2 = int(q2_values[i])
-
+                        q2 = int(q2_values[target_index])
+                        target_index += 1
 
                         if q2 < 0 or q2 >= num_qubits:
-
-                            raise ValueError(
-                                f"Invalid target qubit: {q2}"
-                            )
-
+                            raise ValueError(f"Invalid target qubit: {q2}")
 
                         if q1 == q2:
-
                             raise ValueError(
-                                "Control and target "
-                                "qubits cannot be the same."
+                                "Control and target qubits cannot be the same."
                             )
-
 
                         gate["q2"] = q2
 
-
                     gates.append(gate)
+
 
 
                 # Create Qiskit circuit
