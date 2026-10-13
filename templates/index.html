@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,30 +6,24 @@
     <title>Quantum Circuit Resource Analyser</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
 <div class="container">
-
     <header>
         <h1>Quantum Circuit Resource Analyser</h1>
         <p>Analyse quantum circuits and understand their resource requirements.</p>
     </header>
 
-    <!-- TABS -->
     <div class="tabs">
-        <button
-            type="button"
-            class="tab-button {% if active_tab == 'builder' %}active{% endif %}"
-            id="builder-tab"
-            onclick="showTab('builder')">
+        <button type="button"
+                class="tab-button {% if active_tab == 'builder' %}active{% endif %}"
+                id="builder-tab"
+                onclick="showTab('builder')">
             Circuit Builder
         </button>
-
-        <button
-            type="button"
-            class="tab-button {% if active_tab == 'code' %}active{% endif %}"
-            id="code-tab"
-            onclick="showTab('code')">
+        <button type="button"
+                class="tab-button {% if active_tab == 'code' %}active{% endif %}"
+                id="code-tab"
+                onclick="showTab('code')">
             Code Analyser
         </button>
     </div>
@@ -45,14 +38,11 @@
         <div class="input-column">
 
             <!-- CIRCUIT BUILDER -->
-            <div
-                id="builder-content"
-                class="tab-content"
-                {% if active_tab != 'builder' %}style="display:none"{% endif %}>
-
+            <div id="builder-content"
+                 class="tab-content"
+                 {% if active_tab != 'builder' %}style="display:none"{% endif %}>
                 <section class="section">
                     <h2>Circuit Builder</h2>
-
                     <p class="description">
                         Select the number of qubits and add gates to construct
                         your quantum circuit.
@@ -60,19 +50,17 @@
 
                     <form method="POST" id="builder-form">
                         <input type="hidden" name="form_type" value="builder">
+                        <input type="hidden" id="builder-action" name="action" value="analyse">
 
                         <div class="qubit-setup">
                             <label for="num_qubits">Number of Qubits:</label>
-
-                            <input
-                                type="number"
-                                id="num_qubits"
-                                name="num_qubits"
-                                min="1"
-                                max="20"
-                                value="{{ num_qubits }}"
-                                required>
-
+                            <input type="number"
+                                   id="num_qubits"
+                                   name="num_qubits"
+                                   min="1"
+                                   max="20"
+                                   value="{{ num_qubits }}"
+                                   required>
                             <button type="button" onclick="createCircuit()">
                                 Create Circuit
                             </button>
@@ -88,28 +76,24 @@
             </div>
 
             <!-- CODE ANALYSER -->
-            <div
-                id="code-content"
-                class="tab-content"
-                {% if active_tab != 'code' %}style="display:none"{% endif %}>
-
+            <div id="code-content"
+                 class="tab-content"
+                 {% if active_tab != 'code' %}style="display:none"{% endif %}>
                 <section class="section">
                     <h2>Code Analyser</h2>
-
                     <p class="description">
                         Enter Python code that creates a Qiskit QuantumCircuit.
                     </p>
 
-                    <form method="POST">
+                    <form method="POST" id="code-form">
                         <input type="hidden" name="form_type" value="code">
+                        <input type="hidden" id="code-action" name="action" value="analyse">
 
                         <label for="code">Qiskit Code:</label>
-
-                        <textarea
-                            id="code"
-                            name="code"
-                            rows="12"
-                            placeholder="Enter your Qiskit code here...">{{ code }}</textarea>
+                        <textarea id="code"
+                                  name="code"
+                                  rows="12"
+                                  placeholder="Enter your Qiskit code here...">{{ code }}</textarea>
 
                         <button type="submit" class="analyse-button">
                             Analyse Code
@@ -118,7 +102,6 @@
 
                     <div class="code-example">
                         <h3>Example Code</h3>
-
                         <pre><code>from qiskit import QuantumCircuit
 
 qc = QuantumCircuit(3)
@@ -131,61 +114,60 @@ qc.swap(0, 2)</code></pre>
                     </div>
                 </section>
             </div>
-
         </div>
 
         <!-- RIGHT COLUMN: RESULTS -->
         <div class="output-column">
 
-            {% if analysis %}
+            {% set input_form_id = 'code-form' if active_tab == 'code' else 'builder-form' %}
 
-            <!-- ANALYSIS -->
-            <section class="section results-section">
-                <h2>Analysis</h2>
+            <!-- These controls belong to the active input form. -->
+            <input type="hidden"
+                   id="transpile-level-control"
+                   name="optimization_level"
+                   value="{{ transpilation_settings.optimization_level if transpilation_settings else 0 }}"
+                   form="{{ input_form_id }}">
 
+            <input type="hidden"
+                   id="transpile-basis-control"
+                   name="basis_choice"
+                   value="{{ transpilation_settings.basis_choice if transpilation_settings else 'default' }}"
+                   form="{{ input_form_id }}">
+
+            {% macro analysis_details(data, diagram_title='Circuit Diagram') %}
                 <div class="metrics">
-
                     <div class="metric">
                         <h3>Qubits</h3>
-                        <p>{{ analysis.qubits }}</p>
+                        <p>{{ data.qubits }}</p>
                     </div>
-
                     <div class="metric">
                         <h3>Total Operations</h3>
-                        <p>{{ analysis.operations }}</p>
+                        <p>{{ data.operations }}</p>
                     </div>
-
                     <div class="metric">
                         <h3>Circuit Depth</h3>
-                        <p>{{ analysis.depth }}</p>
+                        <p>{{ data.depth }}</p>
                     </div>
-
                     <div class="metric">
                         <h3>Single-Qubit Gates</h3>
-                        <p>{{ analysis.single_qubit_gates }}</p>
+                        <p>{{ data.single_qubit_gates }}</p>
                     </div>
-
                     <div class="metric">
                         <h3>Multi-Qubit Gates</h3>
-                        <p>{{ analysis.multi_qubit_gates }}</p>
+                        <p>{{ data.multi_qubit_gates }}</p>
                     </div>
-
                     <div class="metric">
                         <h3>Entangling Gates</h3>
-                        <p>{{ analysis.entangling_gates }}</p>
+                        <p>{{ data.entangling_gates }}</p>
                     </div>
-
                     <div class="metric">
                         <h3>Complexity</h3>
-                        <p>{{ analysis.complexity }}</p>
+                        <p>{{ data.complexity }}</p>
                     </div>
-
-                    <!-- GATE FREQUENCY: SAME GRID AS METRICS -->
                     <div class="gate-frequency-box">
                         <h3>Gate Frequency</h3>
-
                         <div class="gate-frequency">
-                            {% for gate, count in analysis.gate_counts.items() %}
+                            {% for gate, count in data.gate_counts.items() %}
                             <div class="gate-item">
                                 <span class="gate-name">{{ gate.upper() }}</span>
                                 <span class="gate-count">{{ count }}</span>
@@ -193,32 +175,189 @@ qc.swap(0, 2)</code></pre>
                             {% endfor %}
                         </div>
                     </div>
-
                 </div>
-            </section>
 
-            <!-- RECOMMENDATIONS -->
-            <section class="section results-section">
-                <h2>Recommendations</h2>
+                <section class="section results-section nested-result-section">
+                    <h2>Recommendations</h2>
+                    <ul>
+                        {% for recommendation in data.recommendations %}
+                        <li>{{ recommendation }}</li>
+                        {% endfor %}
+                    </ul>
+                </section>
 
-                <ul>
-                    {% for recommendation in analysis.recommendations %}
-                    <li>{{ recommendation }}</li>
-                    {% endfor %}
-                </ul>
-            </section>
+                <section class="section diagram-section nested-result-section">
+                    <h2>{{ diagram_title }}</h2>
+                    <pre class="circuit">{{ transpiled_diagram if diagram_title == 'Final Transpiled Circuit' else data.diagram }}</pre>
+                </section>
+            {% endmacro %}
 
-            <!-- CIRCUIT DIAGRAM -->
-            <section class="section diagram-section">
-                <h2>Circuit Diagram</h2>
-                <pre class="circuit">{{ analysis.diagram }}</pre>
-            </section>
+            {% if analysis %}
+
+            <!-- ORIGINAL ANALYSIS VIEW -->
+            <div id="original-analysis-view"
+                 {% if comparison %}style="display:none"{% endif %}>
+                <section class="section results-section">
+                    <div class="panel-heading">
+                        <h2>Analysis</h2>
+
+                        <div class="transpile-control">
+                            <button type="button"
+                                    class="transpile-button"
+                                    onclick="toggleOptimizationMenu()"
+                                    aria-expanded="false"
+                                    aria-controls="optimization-menu">
+                                Transpile <span class="dropdown-caret">▾</span>
+                            </button>
+
+                            <div class="optimization-menu" id="optimization-menu" hidden>
+                                <p>Select optimization level</p>
+
+                                <button type="button" onclick="beginTranspilation(0)">
+                                    <span class="level-number">0</span>
+                                    <span>
+                                        <strong>Level 0</strong>
+                                        <small>No optimization</small>
+                                    </span>
+                                </button>
+
+                                <button type="button" onclick="beginTranspilation(1)">
+                                    <span class="level-number">1</span>
+                                    <span>
+                                        <strong>Level 1</strong>
+                                        <small>Light optimization</small>
+                                    </span>
+                                </button>
+
+                                <button type="button" onclick="beginTranspilation(2)">
+                                    <span class="level-number">2</span>
+                                    <span>
+                                        <strong>Level 2</strong>
+                                        <small>Medium optimization</small>
+                                    </span>
+                                </button>
+
+                                <button type="button" onclick="beginTranspilation(3)">
+                                    <span class="level-number">3</span>
+                                    <span>
+                                        <strong>Level 3</strong>
+                                        <small>Heavy optimization</small>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{ analysis_details(analysis) }}
+                </section>
+            </div>
+
+            {% if comparison and transpiled_analysis %}
+
+            <!-- TRANSPILATION ANALYSIS VIEW -->
+            <div id="transpilation-view">
+                <section class="section transpilation-section">
+                    <div class="panel-heading transpilation-heading">
+                        <h2>Transpilation Analysis</h2>
+                        <button type="button" class="back-button" onclick="showOriginalAnalysis()">
+                            <span aria-hidden="true">←</span> Back
+                        </button>
+                    </div>
+
+                    <!-- Choose the gate representation. Each representation has its own comparison tab. -->
+                    <div class="transpilation-tabs basis-tabs" role="tablist" aria-label="Gate representation">
+                        <button type="button"
+                                class="transpilation-tab {% if transpilation_settings.basis_choice == 'default' %}active{% endif %}"
+                                onclick="selectTranspilationView('default')" role="tab">
+                            Default Gate
+                        </button>
+                        <button type="button"
+                                class="transpilation-tab {% if transpilation_settings.basis_choice == 'hardware' %}active{% endif %}"
+                                onclick="selectTranspilationView('hardware')" role="tab">
+                            Hardware-Style Gate
+                        </button>
+                    </div>
+
+                    <div class="transpilation-setting-note">
+                        Optimization level: <strong>{{ transpilation_settings.optimization_level }}</strong>
+                        {% if transpilation_settings.basis_choice == 'hardware' %}
+                            · Basis gates: <code>rz, sx, x, cx</code>
+                        {% else %}
+                            · Basis gates: Qiskit default
+                        {% endif %}
+                    </div>
+
+                    <!-- The selected representation has its own result and compare tabs. -->
+                    <div class="transpilation-tabs result-tabs" role="tablist" aria-label="Selected transpilation details">
+                        <button type="button" class="transpilation-tab active" id="transpiled-result-tab"
+                                onclick="showTranspilationResult()" role="tab">
+                            Transpiled Analysis
+                        </button>
+                        <button type="button" class="transpilation-tab" id="transpiled-compare-tab"
+                                onclick="showComparisonView()" role="tab">
+                            Compare with Original
+                        </button>
+                    </div>
+
+                    <div id="transpiled-gate-view">
+                        {{ analysis_details(transpiled_analysis, 'Final Transpiled Circuit') }}
+                    </div>
+
+                    <div id="transpilation-comparison-view" hidden>
+                        <p class="comparison-intro">
+                            Original circuit compared with the {{ 'hardware-style' if transpilation_settings.basis_choice == 'hardware' else 'default-gate' }} transpiled circuit.
+                        </p>
+                        <div class="comparison-grid">
+                            <div class="comparison-card">
+                                <h3>Operations</h3>
+                                <div class="comparison-values">
+                                    <div><span>Original</span><strong>{{ comparison.original_operations }}</strong></div>
+                                    <div><span>Transpiled</span><strong>{{ comparison.transpiled_operations }}</strong></div>
+                                </div>
+                                <p class="change-value {% if comparison.operation_change > 0 %}improved{% elif comparison.operation_change < 0 %}increased{% endif %}">
+                                    {% if comparison.operation_change > 0 %}{{ comparison.operation_change }} fewer operations
+                                    {% elif comparison.operation_change < 0 %}{{ comparison.operation_change|abs }} more operations
+                                    {% else %}No change in operations{% endif %}
+                                </p>
+                            </div>
+                            <div class="comparison-card">
+                                <h3>Circuit Depth</h3>
+                                <div class="comparison-values">
+                                    <div><span>Original</span><strong>{{ comparison.original_depth }}</strong></div>
+                                    <div><span>Transpiled</span><strong>{{ comparison.transpiled_depth }}</strong></div>
+                                </div>
+                                <p class="change-value {% if comparison.depth_change > 0 %}improved{% elif comparison.depth_change < 0 %}increased{% endif %}">
+                                    {% if comparison.depth_change > 0 %}{{ comparison.depth_change }} lower depth
+                                    {% elif comparison.depth_change < 0 %}{{ comparison.depth_change|abs }} higher depth
+                                    {% else %}No change in depth{% endif %}
+                                </p>
+                            </div>
+                            <div class="comparison-card">
+                                <h3>Single-Qubit Gates</h3>
+                                <div class="comparison-values">
+                                    <div><span>Original</span><strong>{{ comparison.original_single_qubit_gates }}</strong></div>
+                                    <div><span>Transpiled</span><strong>{{ comparison.transpiled_single_qubit_gates }}</strong></div>
+                                </div>
+                            </div>
+                            <div class="comparison-card">
+                                <h3>Multi-Qubit Gates</h3>
+                                <div class="comparison-values">
+                                    <div><span>Original</span><strong>{{ comparison.original_multi_qubit_gates }}</strong></div>
+                                    <div><span>Transpiled</span><strong>{{ comparison.transpiled_multi_qubit_gates }}</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="comparison-footnote">
+                            Positive reductions indicate fewer operations or lower depth. Negative changes indicate increases.
+                        </div>
+                    </div>
+                </section>
+            </div>
+            {% endif %}
 
             {% else %}
-
             <section class="section empty-results">
                 <h2>Analysis Results</h2>
-
                 <p>
                     Build a circuit or enter Qiskit code, then click Analyse
                     to view the resource metrics and circuit diagram.
@@ -227,14 +366,9 @@ qc.swap(0, 2)</code></pre>
 
             <section class="section empty-diagram">
                 <h2>Circuit Diagram</h2>
-
-                <p>
-                    The circuit diagram will appear here after analysis.
-                </p>
+                <p>The circuit diagram will appear here after analysis.</p>
             </section>
-
             {% endif %}
-
         </div>
     </div>
 </div>
@@ -247,11 +381,8 @@ qc.swap(0, 2)</code></pre>
         const builderTab = document.getElementById("builder-tab");
         const codeTab = document.getElementById("code-tab");
 
-        builderContent.style.display =
-            tabName === "builder" ? "block" : "none";
-
-        codeContent.style.display =
-            tabName === "code" ? "block" : "none";
+        builderContent.style.display = tabName === "builder" ? "block" : "none";
+        codeContent.style.display = tabName === "code" ? "block" : "none";
 
         builderTab.classList.toggle("active", tabName === "builder");
         codeTab.classList.toggle("active", tabName === "code");
@@ -262,7 +393,6 @@ qc.swap(0, 2)</code></pre>
     function createCircuit() {
         const input = document.getElementById("num_qubits");
         const container = document.getElementById("circuit-container");
-
         const numQubits = Number.parseInt(input.value, 10);
 
         if (!Number.isInteger(numQubits) || numQubits < 1) {
@@ -308,19 +438,16 @@ qc.swap(0, 2)</code></pre>
         });
 
         card.appendChild(addButton);
-
         return card;
     }
 
     // Add a gate to a qubit card.
-    // Single-qubit gates have no qubit dropdown.
-    // CX, CZ and SWAP show a target dropdown.
-    function addGate(qubitIndex, numQubits, defaultGate = "h") {
+    // CX, CZ and SWAP show a target-qubit dropdown.
+    function addGate(qubitIndex, numQubits, defaultGate = "h", defaultTarget = null) {
         const container = document.getElementById("gates-" + qubitIndex);
         const row = document.createElement("div");
         row.className = "gate-row";
 
-        // Submit the owning qubit invisibly to Flask.
         const qubitInput = document.createElement("input");
         qubitInput.type = "hidden";
         qubitInput.name = "q1";
@@ -328,7 +455,6 @@ qc.swap(0, 2)</code></pre>
         qubitInput.setAttribute("form", "builder-form");
         row.appendChild(qubitInput);
 
-        // Gate dropdown.
         const gateSelect = document.createElement("select");
         gateSelect.name = "gate";
         gateSelect.setAttribute("form", "builder-form");
@@ -356,7 +482,6 @@ qc.swap(0, 2)</code></pre>
 
         row.appendChild(gateSelect);
 
-        // Target dropdown.
         const targetContainer = document.createElement("span");
         targetContainer.className = "target-container";
 
@@ -375,10 +500,13 @@ qc.swap(0, 2)</code></pre>
             targetSelect.appendChild(option);
         }
 
+        if (defaultTarget !== null && defaultTarget !== undefined) {
+            targetSelect.value = String(defaultTarget);
+        }
+
         targetContainer.appendChild(targetSelect);
         row.appendChild(targetContainer);
 
-        // Remove button.
         const removeButton = document.createElement("button");
         removeButton.type = "button";
         removeButton.className = "remove-button";
@@ -390,14 +518,10 @@ qc.swap(0, 2)</code></pre>
 
         row.appendChild(removeButton);
 
-        // Only two-qubit gates need a target.
         function updateTargetVisibility() {
-            const needsTarget =
-                ["cx", "cz", "swap"].includes(gateSelect.value);
+            const needsTarget = ["cx", "cz", "swap"].includes(gateSelect.value);
 
-            targetContainer.style.display =
-                needsTarget ? "inline-flex" : "none";
-
+            targetContainer.style.display = needsTarget ? "inline-flex" : "none";
             targetSelect.disabled = !needsTarget;
             targetSelect.required = needsTarget;
         }
@@ -408,10 +532,28 @@ qc.swap(0, 2)</code></pre>
         updateTargetVisibility();
     }
 
-    // Initialize the builder and restore the selected tab.
-    
+    // Initialize the builder and restore saved gates after form submission.
     window.addEventListener("DOMContentLoaded", function () {
-        createCircuit();
+        const savedGates = {{ gates|tojson }};
+        const shouldRestoreBuilder = {{ 'true' if active_tab == 'builder' and analysis else 'false' }};
+
+        if (shouldRestoreBuilder) {
+            const qubitInput = document.getElementById("num_qubits");
+            const container = document.getElementById("circuit-container");
+            const numQubits = Number.parseInt(qubitInput.value, 10);
+
+            container.innerHTML = "";
+
+            for (let i = 0; i < numQubits; i++) {
+                container.appendChild(createQubitCard(i, numQubits));
+            }
+
+            savedGates.forEach(function (gate) {
+                addGate(Number(gate.q1), numQubits, gate.gate, gate.q2);
+            });
+        } else {
+            createCircuit();
+        }
 
         const activeTab = "{{ active_tab }}";
         showTab(activeTab === "code" ? "code" : "builder");
@@ -426,7 +568,131 @@ qc.swap(0, 2)</code></pre>
         });
     });
 
-</script>
+    // Open or close the optimization dropdown.
+    function toggleOptimizationMenu() {
+        const menu = document.getElementById("optimization-menu");
+        const button = document.querySelector(".transpile-button");
 
+        if (!menu || !button) return;
+
+        menu.hidden = !menu.hidden;
+        button.setAttribute("aria-expanded", String(!menu.hidden));
+    }
+
+    function getActiveInputForm() {
+        const activeTab = "{{ active_tab }}";
+
+        return document.getElementById(
+            activeTab === "code" ? "code-form" : "builder-form"
+        );
+    }
+
+    function setActiveFormAction(action) {
+        const activeTab = "{{ active_tab }}";
+        const actionId = activeTab === "code" ? "code-action" : "builder-action";
+        const actionInput = document.getElementById(actionId);
+
+        if (actionInput) {
+            actionInput.value = action;
+        }
+    }
+
+    // Start transpilation at the selected optimization level.
+    function beginTranspilation(level) {
+        const levelInput = document.getElementById("transpile-level-control");
+        const basisInput = document.getElementById("transpile-basis-control");
+        const menu = document.getElementById("optimization-menu");
+        const menuButton = document.querySelector(".transpile-button");
+
+        levelInput.value = String(level);
+        basisInput.value = "default";
+
+        setActiveFormAction("transpile");
+
+        if (menu) menu.hidden = true;
+        if (menuButton) menuButton.setAttribute("aria-expanded", "false");
+
+        const form = getActiveInputForm();
+
+        if (form) {
+            if (typeof form.requestSubmit === "function") {
+                form.requestSubmit();
+            } else {
+                form.submit();
+            }
+        }
+    }
+
+    // Change the gate representation while retaining the optimization level.
+    function selectTranspilationView(basisChoice) {
+        document.getElementById("transpile-basis-control").value = basisChoice;
+        setActiveFormAction("transpile");
+
+        const form = getActiveInputForm();
+
+        if (form) {
+            if (typeof form.requestSubmit === "function") {
+                form.requestSubmit();
+            } else {
+                form.submit();
+            }
+        }
+    }
+
+    // Show the selected transpiled circuit analysis.
+    function showTranspilationResult() {
+        const gateView = document.getElementById("transpiled-gate-view");
+        const comparisonView = document.getElementById("transpilation-comparison-view");
+        const resultTab = document.getElementById("transpiled-result-tab");
+        const compareTab = document.getElementById("transpiled-compare-tab");
+        if (!gateView || !comparisonView) return;
+        gateView.hidden = false;
+        comparisonView.hidden = true;
+        resultTab.classList.add("active");
+        compareTab.classList.remove("active");
+    }
+
+    // Show comparison for whichever basis-gate representation is selected.
+    function showComparisonView() {
+        const gateView = document.getElementById("transpiled-gate-view");
+        const comparisonView = document.getElementById("transpilation-comparison-view");
+        const resultTab = document.getElementById("transpiled-result-tab");
+        const compareTab = document.getElementById("transpiled-compare-tab");
+        if (!gateView || !comparisonView) return;
+        gateView.hidden = true;
+        comparisonView.hidden = false;
+        resultTab.classList.remove("active");
+        compareTab.classList.add("active");
+    }
+
+    // Return to the original analysis in the same right-hand panel.
+    function showOriginalAnalysis() {
+        const originalView = document.getElementById("original-analysis-view");
+        const transpilationView = document.getElementById("transpilation-view");
+
+        if (originalView) originalView.style.display = "block";
+        if (transpilationView) transpilationView.style.display = "none";
+
+        setActiveFormAction("analyse");
+
+        const menu = document.getElementById("optimization-menu");
+        const menuButton = document.querySelector(".transpile-button");
+
+        if (menu) menu.hidden = true;
+        if (menuButton) menuButton.setAttribute("aria-expanded", "false");
+    }
+
+    // Close the dropdown when clicking outside it.
+    document.addEventListener("click", function (event) {
+        const control = document.querySelector(".transpile-control");
+        const menu = document.getElementById("optimization-menu");
+        const button = document.querySelector(".transpile-button");
+
+        if (control && menu && !control.contains(event.target)) {
+            menu.hidden = true;
+            if (button) button.setAttribute("aria-expanded", "false");
+        }
+    });
+</script>
 </body>
 </html>

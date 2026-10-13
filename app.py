@@ -1,8 +1,12 @@
+
 from flask import Flask, render_template, request
 
 from qiskit import QuantumCircuit
 
 from analyser import analyse_circuit
+
+# NEW: Import the transpilation function
+from transpile import transpile_circuit
 
 
 app = Flask(__name__)
@@ -103,6 +107,27 @@ def index():
     # Used by the code analyser
     code = ""
 
+    # ========================================================
+    # NEW: VARIABLES USED ONLY FOR TRANSPILATION RESULTS
+    # ========================================================
+
+    original_analysis = None
+
+    transpiled_analysis = None
+
+    transpiled_diagram = None
+
+    transpilation_settings = None
+
+    comparison = None
+
+    # NEW: Keep track of the circuit created by the existing
+    # Builder or Code Analyser so it can also be transpiled.
+    qc = None
+
+    # NEW: Default action preserves the existing analysis flow.
+    action = "analyse"
+
 
     # ========================================================
     # FORM SUBMITTED
@@ -115,9 +140,18 @@ def index():
             "builder"
         )
 
+        # NEW: Transpilation is an additional action.
+        # Existing forms that don't submit this field default
+        # to normal analysis.
+        action = request.form.get(
+            "action",
+            "analyse"
+        )
+
 
         # ====================================================
         # CIRCUIT BUILDER
+        # EXISTING FUNCTIONALITY
         # ====================================================
 
         if form_type == "builder":
@@ -140,7 +174,6 @@ def index():
                     )
 
 
-                
                 gate_names = request.form.getlist("gate")
                 q1_values = request.form.getlist("q1")
                 q2_values = request.form.getlist("q2")
@@ -180,7 +213,6 @@ def index():
                     gates.append(gate)
 
 
-
                 # Create Qiskit circuit
 
                 qc = create_circuit_from_builder(
@@ -190,6 +222,8 @@ def index():
 
 
                 # Analyse circuit
+                # EXISTING BEHAVIOUR: analysis is the original
+                # circuit's analysis, as before.
 
                 analysis = analyse_circuit(qc)
 
@@ -201,6 +235,7 @@ def index():
 
         # ====================================================
         # CODE ANALYSER
+        # EXISTING FUNCTIONALITY
         # ====================================================
 
         elif form_type == "code":
@@ -247,14 +282,151 @@ def index():
                     )
 
 
+        # ====================================================
+        # NEW FEATURE: CIRCUIT TRANSPILATION
+        # Runs only when the Transpile button is submitted.
+        # ====================================================
+
+        if (
+            action == "transpile"
+            and qc is not None
+            and error is None
+        ):
+
+            try:
+
+                # Get transpilation settings from the frontend.
+
+                optimization_level = request.form.get(
+                    "optimization_level",
+                    "0"
+                )
+
+                basis_choice = request.form.get(
+                    "basis_choice",
+                    "default"
+                )
+
+
+                # Preserve the original circuit's analysis
+                # separately for the comparison.
+
+                original_analysis = analysis
+
+
+                # Transpile the original circuit.
+
+                transpiled_qc = transpile_circuit(
+                    qc,
+                    optimization_level=optimization_level,
+                    basis_choice=basis_choice
+                )
+
+
+                # Analyse the transpiled circuit separately.
+
+                transpiled_analysis = analyse_circuit(
+                    transpiled_qc
+                )
+
+
+                # Generate a text representation of the
+                # transpiled circuit for the frontend.
+
+                transpiled_diagram = str(
+                    transpiled_qc.draw(output="text")
+                )
+
+
+                # Compare original and transpiled resources.
+
+                original_operations = original_analysis["operations"]
+
+                transpiled_operations = (
+                    transpiled_analysis["operations"]
+                )
+
+                original_depth = original_analysis["depth"]
+
+                transpiled_depth = transpiled_analysis["depth"]
+
+
+                operation_change = (
+                    original_operations - transpiled_operations
+                )
+
+                depth_change = (
+                    original_depth - transpiled_depth
+                )
+
+
+                # Pass comparison values to the frontend.
+
+                comparison = {
+
+                    "original_operations":
+                        original_operations,
+
+                    "transpiled_operations":
+                        transpiled_operations,
+
+                    "original_depth":
+                        original_depth,
+
+                    "transpiled_depth":
+                        transpiled_depth,
+
+                    "original_single_qubit_gates":
+                        original_analysis["single_qubit_gates"],
+
+                    "transpiled_single_qubit_gates":
+                        transpiled_analysis["single_qubit_gates"],
+
+                    "original_multi_qubit_gates":
+                        original_analysis["multi_qubit_gates"],
+
+                    "transpiled_multi_qubit_gates":
+                        transpiled_analysis["multi_qubit_gates"],
+
+                    "operation_change":
+                        operation_change,
+
+                    "depth_change":
+                        depth_change
+                }
+
+
+                # Preserve the selected settings for the UI.
+
+                transpilation_settings = {
+
+                    "optimization_level":
+                        int(optimization_level),
+
+                    "basis_choice":
+                        basis_choice
+                }
+
+
+            except Exception as e:
+
+                error = (
+                    "Error during transpilation: "
+                    + str(e)
+                )
+
+
     # ========================================================
     # RENDER PAGE
+    # EXISTING VARIABLES ARE PRESERVED.
+    # NEW VARIABLES ARE ADDED FOR TRANSPILATION.
     # ========================================================
 
     return render_template(
 
         "index.html",
 
+        # Existing template variables
         analysis=analysis,
 
         error=error,
@@ -265,13 +437,25 @@ def index():
 
         num_qubits=num_qubits,
 
-        code=code
+        code=code,
+
+        # NEW: Transpilation template variables
+        original_analysis=original_analysis,
+
+        transpiled_analysis=transpiled_analysis,
+
+        transpiled_diagram=transpiled_diagram,
+
+        transpilation_settings=transpilation_settings,
+
+        comparison=comparison
 
     )
 
 
 # ============================================================
 # RUN APPLICATION
+# EXISTING FUNCTIONALITY
 # ============================================================
 
 if __name__ == "__main__":

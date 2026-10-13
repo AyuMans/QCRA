@@ -1,8 +1,8 @@
-
 /* GENERAL */
 html {
     zoom: 0.8;
 }
+
 * {
     box-sizing: border-box;
 }
@@ -245,7 +245,7 @@ textarea {
     overflow-wrap: anywhere;
 }
 
-/* GATE FREQUENCY: ONE BOX INSIDE THE METRICS GRID */
+/* GATE FREQUENCY */
 .gate-frequency-box {
     min-width: 0;
     padding: 12px;
@@ -324,6 +324,261 @@ textarea {
 .empty-results p,
 .empty-diagram p {
     color: #666;
+    line-height: 1.5;
+}
+
+/* ANALYSIS HEADER AND TRANSPILATION DROPDOWN */
+.panel-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.panel-heading h2 {
+    margin: 0;
+}
+
+.transpile-control {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.transpile-button,
+.back-button {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f4f4f4;
+    color: #111;
+    padding: 9px 13px;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.transpile-button:hover,
+.back-button:hover {
+    background: #e8e8e8;
+}
+
+.dropdown-caret {
+    margin-left: 5px;
+}
+
+.optimization-menu {
+    position: absolute;
+    z-index: 20;
+    right: 0;
+    top: calc(100% + 7px);
+    width: 235px;
+    padding: 8px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+
+.optimization-menu[hidden] {
+    display: none;
+}
+
+.optimization-menu > p {
+    font-size: 12px;
+    color: #666;
+    margin: 6px 8px 8px;
+}
+
+.optimization-menu > button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 8px;
+    text-align: left;
+    background: white;
+    border: 0;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.optimization-menu > button:hover {
+    background: #f2f2f2;
+}
+
+.level-number {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: #ececec;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.optimization-menu strong,
+.optimization-menu small {
+    display: block;
+}
+
+.optimization-menu strong {
+    font-size: 13px;
+}
+
+.optimization-menu small {
+    color: #666;
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+/* TRANSPILATION VIEWS */
+.transpilation-section {
+    min-width: 0;
+}
+
+.transpilation-heading {
+    align-items: center;
+}
+
+.transpilation-heading h2 {
+    max-width: 70%;
+}
+
+.back-button {
+    white-space: nowrap;
+}
+
+.transpilation-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 18px 0 12px;
+}
+
+.transpilation-tab {
+    min-height: 42px;
+    padding: 10px 9px;
+    border: 1px solid #d4d4d4;
+    border-radius: 6px;
+    background: #f4f4f4;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+
+.transpilation-tab:hover {
+    background: #e9e9e9;
+}
+
+.transpilation-tab.active {
+    background: #333;
+    color: white;
+    border-color: #333;
+}
+
+.result-tabs {
+    margin-top: 12px;
+}
+
+.transpilation-setting-note {
+    margin: 0 0 15px;
+    color: #666;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.transpilation-setting-note code {
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: #f1f1f1;
+    color: #222;
+}
+
+.nested-result-section {
+    padding: 18px 0 0;
+    margin: 20px 0 0 !important;
+    border: 0;
+    border-top: 1px solid #eee;
+    border-radius: 0;
+}
+
+.nested-result-section h2 {
+    font-size: 18px;
+}
+
+.comparison-intro {
+    color: #555;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 4px 0 14px;
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.comparison-card {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.comparison-card h3 {
+    font-size: 14px;
+    margin: 0 0 13px;
+}
+
+.comparison-values {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.comparison-values span,
+.comparison-values strong {
+    display: block;
+}
+
+.comparison-values span {
+    color: #666;
+    font-size: 11px;
+    margin-bottom: 5px;
+}
+
+.comparison-values strong {
+    font-size: 22px;
+    overflow-wrap: anywhere;
+}
+
+.change-value {
+    padding-top: 10px;
+    margin: 10px 0 0;
+    border-top: 1px solid #e5e5e5;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.45;
+}
+
+.change-value.improved {
+    color: #187044;
+}
+
+.change-value.increased {
+    color: #a33b2f;
+}
+
+.comparison-footnote {
+    margin-top: 13px;
+    color: #666;
+    font-size: 11px;
     line-height: 1.5;
 }
 
@@ -424,5 +679,37 @@ textarea {
 
     .analyse-button {
         max-width: 100%;
+    }
+
+    .panel-heading {
+        gap: 10px;
+    }
+
+    .transpile-button,
+    .back-button {
+        padding: 8px 9px;
+        font-size: 12px;
+    }
+
+    .transpilation-heading h2 {
+        font-size: 17px;
+        max-width: 68%;
+    }
+
+    .transpilation-tabs {
+        gap: 5px;
+    }
+
+    .transpilation-tab {
+        padding: 8px 5px;
+        font-size: 11px;
+    }
+
+    .comparison-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .optimization-menu {
+        width: 215px;
     }
 }
