@@ -1,0 +1,82 @@
+{% set v = transpilation_verification %}
+{% macro badge(status) %}<span class="verification-badge" data-status="{{ status }}">{{ status|replace('_', ' ') }}</span>{% endmacro %}
+<section class="section" id="transpilation-verification">
+    <h2>Transpilation Verification</h2>
+    <div class="verification-overall">
+        <p>Overall verification: <strong>{{ v.overall_status }}</strong></p>
+        <span>Within the stated constraints</span>
+    </div>
+    <div class="verification-block">
+    <div class="verification-heading"><h3>Transpilation necessity</h3>{{ badge(v.necessity.status) }}</div>
+    <ul>{% for reason in v.necessity.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+    <p class="verification-note">Scope: {{ v.necessity.scope }}. The configured basis specifies gate-set compatibility only, not a physical device.</p>
+    </div>
+    <div class="verification-checks">
+        <div><span>Execution</span>{{ badge(v.transpilation.status) }}</div>
+        <div><span>Gate-set compatibility</span>{{ badge(v.target_compatibility.status) }}</div>
+        <div><span>Functional equivalence</span>{{ badge(v.functional_equivalence.status) }}</div>
+    </div>
+    {% if v.transpilation.reason %}<p>{{ v.transpilation.reason }}</p>{% endif %}
+    <div class="verification-math">
+        <div class="verification-heading"><h3>Mathematical verification</h3>{{ badge(v.functional_equivalence.status) }}</div>
+        <p>Method: {{ v.functional_equivalence.method|replace('_', ' ') }}</p>
+        <ul>{% for reason in v.functional_equivalence.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+        {% if v.comparison %}<p class="verification-note">{{ v.comparison.explanation }}</p>{% endif %}
+        <details class="verification-details">
+            <summary>Why operator equivalence works</summary>
+            <p>A unitary circuit has a matrix describing its effect on every possible quantum input. Comparing those matrices checks the complete operation, rather than just a few sample inputs.</p>
+            <p class="verification-equation">U_original = e^(iφ) × U_transpiled</p>
+            <p>A global phase multiplies the entire state by the same complex phase and does not change observable measurement probabilities. Gate counts and depths can differ while the quantum operation stays the same.</p>
+            <p>This is a numerical matrix comparison within stated tolerances, not a symbolic proof. Measured circuits use the separate method shown above, not a unitary matrix for the complete circuit.</p>
+        </details>
+        <details class="verification-details">
+            <summary>View matrices{% if v.functional_equivalence.matrix_dimension %} ({{ v.functional_equivalence.matrix_dimension }} × {{ v.functional_equivalence.matrix_dimension }}){% endif %}</summary>
+            <p>{{ v.functional_equivalence.matrix_message|default('Matrices unavailable because verification did not complete.') }}</p>
+            {% if v.functional_equivalence.matrices %}
+            <p class="verification-note">{{ v.functional_equivalence.matrices.ordering }}</p>
+            <div class="comparison-grid">
+                {% for key, label in [('original', 'Original unitary'), ('transpiled', 'Transpiled unitary')] %}
+                <div class="comparison-card"><h3>{{ label }}</h3>
+                    <div class="verification-table-wrap matrix-scroll" tabindex="0" role="region" aria-label="{{ label }} matrix">
+                        <table class="unitary-matrix" aria-label="{{ label }}"><tbody>
+                            {% for row in v.functional_equivalence.matrices[key] %}<tr>{% for value in row %}<td><code>{{ value }}</code></td>{% endfor %}</tr>{% endfor %}
+                        </tbody></table>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <p>Operator equivalence: {{ badge(v.functional_equivalence.status) }}. Element-by-element equality is not required when a global phase relates the matrices.</p>
+            {% endif %}
+            {% if v.functional_equivalence.global_phase_radians is defined and v.functional_equivalence.global_phase_radians is not none %}
+            <p>Phase φ in the equation above: {{ '%.8g'|format(v.functional_equivalence.global_phase_radians) }} radians.</p>
+            <p class="verification-note">Maximum entry difference after phase alignment: {{ '%.3g'|format(v.functional_equivalence.phase_aligned_max_difference) }}.</p>
+            {% endif %}
+        </details>
+    </div>
+    <details class="verification-details" {% if v.overall_status != 'VERIFIED' %}open{% endif %}>
+        <summary>How these results were checked</summary>
+        <h3>Gate-set compatibility</h3>
+        <ul>{% for reason in v.target_compatibility.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+        <h3>Functional equivalence</h3>
+        <p>Method: {{ v.functional_equivalence.method|replace('_', ' ') }}</p>
+        <ul>{% for reason in v.functional_equivalence.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+    </details>
+    {% if v.functional_equivalence.output_comparison %}
+    {% set output = v.functional_equivalence.output_comparison %}
+    <details class="verification-details">
+        <summary>Exact output probabilities for the zero input</summary>
+        <p>{{ output.input }} {{ output.ordering }}</p>
+        <p>This table alone does not establish equivalence for other inputs.</p>
+        <div class="verification-table-wrap verification-probabilities" tabindex="0" role="region" aria-label="Output probabilities">
+        <table><thead><tr><th scope="col">Outcome</th><th scope="col">Original</th><th scope="col">Transpiled</th></tr></thead>
+        <tbody>{% for row in output.rows %}<tr><th scope="row"><code>{{ row.state }}</code></th><td>{{ '%.8f'|format(row.original) }}</td><td>{{ '%.8f'|format(row.transpiled) }}</td></tr>{% endfor %}</tbody></table>
+        </div>
+        <p class="verification-note">Maximum probability difference: {{ output.max_difference }}</p>
+    </details>
+    {% endif %}
+    <details class="verification-details">
+    <summary>Verification limitations and tolerances</summary>
+    <ul>{% for limitation in v.limitations + v.functional_equivalence.get('limitations', []) %}<li>{{ limitation }}</li>{% endfor %}</ul>
+    {% if v.functional_equivalence.atol is defined %}<p>Absolute tolerance: {{ v.functional_equivalence.atol }}; relative tolerance: {{ v.functional_equivalence.rtol }}.</p>{% endif %}
+    </details>
+</section>

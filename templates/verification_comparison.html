@@ -1,0 +1,32 @@
+{% set v = transpilation_verification %}
+<div id="verification-comparison">
+    {% if v.comparison %}
+    <h3 class="verification-subheading">Circuit diagrams</h3>
+    <div class="comparison-grid">
+        <div class="comparison-card"><h3>Original circuit</h3><pre class="circuit">{{ original_analysis.diagram }}</pre></div>
+        <div class="comparison-card"><h3>Transpiled circuit</h3><pre class="circuit">{{ transpiled_diagram }}</pre></div>
+    </div>
+    <h3 class="verification-subheading">Resource comparison</h3>
+    <div class="verification-table-wrap" tabindex="0" role="region" aria-label="Resource comparison">
+    <table>
+        <caption>Gate totals exclude measurements and directives. Change is transpiled minus original; negative values indicate reductions.</caption>
+        <thead><tr><th scope="col">Metric</th><th scope="col">Original</th><th scope="col">Transpiled</th><th scope="col">Change</th></tr></thead>
+        <tbody>{% for key, label in [('qubits', 'Qubits'), ('operations', 'Operations'), ('depth', 'Depth'), ('single_qubit_gates', 'Single-qubit gates'), ('multi_qubit_gates', 'Multi-qubit gates')] %}
+        <tr><th scope="row">{{ label }}</th><td>{{ v.comparison.original[key] }}</td><td>{{ v.comparison.transpiled[key] }}</td><td>{{ '%+d'|format(v.comparison.transpiled[key] - v.comparison.original[key]) }}</td></tr>
+        {% endfor %}</tbody>
+    </table>
+    </div>
+    <details class="verification-details">
+        <summary>Gate changes and operation counts</summary>
+        <div class="verification-table-wrap" tabindex="0" role="region" aria-label="Operation counts">
+            <table><thead><tr><th scope="col">Operation</th><th scope="col">Original</th><th scope="col">Transpiled</th></tr></thead>
+            <tbody>{% for name in (v.comparison.original.gate_counts.keys()|list + v.comparison.transpiled.gate_counts.keys()|list)|unique|sort %}
+                <tr><th scope="row"><code>{{ name }}</code></th><td>{{ v.comparison.original.gate_counts.get(name, 0) }}</td><td>{{ v.comparison.transpiled.gate_counts.get(name, 0) }}</td></tr>
+            {% else %}<tr><td colspan="3">No operations in either circuit.</td></tr>{% endfor %}</tbody></table>
+        </div>
+        <p><strong>Types added:</strong> {{ v.comparison.added|join(', ') or 'None' }}</p>
+        <p><strong>Types removed:</strong> {{ v.comparison.removed|join(', ') or 'None' }}</p>
+        <p class="verification-note">{{ v.comparison.explanation }}</p>
+    </details>
+    {% endif %}
+</div>
