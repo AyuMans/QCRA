@@ -6,10 +6,13 @@ from qiskit import QuantumCircuit
 from analyser import analyse_circuit
 
 # NEW: Import the transpilation function
-from transpile import transpile_circuit
+from transpile import transpile_circuit, BASIS_PRESETS, SUPPORTED_BASIS_GATES
+from verification import (VerificationLimits, selected_constraints,
+                          check_transpilation_necessity, generate_verification_report)
 
 
 app = Flask(__name__)
+app.config.setdefault("VERIFICATION_LIMITS", VerificationLimits())
 
 
 # ============================================================
@@ -120,6 +123,7 @@ def index():
     transpilation_settings = None
 
     comparison = None
+    transpilation_verification = None
 
     # NEW: Keep track of the circuit created by the existing
     # Builder or Code Analyser so it can also be transpiled.
@@ -316,10 +320,28 @@ def index():
 
                 # Transpile the original circuit.
 
-                transpiled_qc = transpile_circuit(
-                    qc,
-                    optimization_level=optimization_level,
-                    basis_choice=basis_choice
+                custom_basis_gates = request.form.get("custom_basis_gates", "")
+                constraints = selected_constraints(basis_choice, custom_basis_gates)
+                necessity = check_transpilation_necessity(
+                    qc, constraints, optimization_requested=int(optimization_level) > 0
+                )
+
+                try:
+                    transpiled_qc = transpile_circuit(
+                        qc,
+                        optimization_level=optimization_level,
+                        basis_choice=basis_choice,
+                        custom_basis_gates=custom_basis_gates
+                    )
+                except Exception as exc:
+                    transpilation_verification = generate_verification_report(
+                        qc, None, constraints, necessity, error=exc
+                    )
+                    raise
+
+                transpilation_verification = generate_verification_report(
+                    qc, transpiled_qc, constraints, necessity,
+                    limits=app.config["VERIFICATION_LIMITS"]
                 )
 
 
@@ -404,7 +426,8 @@ def index():
                         int(optimization_level),
 
                     "basis_choice":
-                        basis_choice
+                        basis_choice,
+                    "basis_gates": constraints["basis_gates"]
                 }
 
 
@@ -448,7 +471,13 @@ def index():
 
         transpilation_settings=transpilation_settings,
 
-        comparison=comparison
+        comparison=comparison,
+        transpilation_verification=transpilation_verification,
+        basis_presets=BASIS_PRESETS,
+        supported_basis_gates=SUPPORTED_BASIS_GATES,
+        selected_basis_choice=request.form.get("basis_choice", "default"),
+        custom_basis_input=request.form.get("custom_basis_gates", ""),
+        selected_optimization_level=request.form.get("optimization_level", "0")
 
     )
 

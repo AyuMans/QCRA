@@ -118,21 +118,73 @@ qc.swap(0, 2)</code></pre>
 
         <!-- RIGHT COLUMN: RESULTS -->
         <div class="output-column">
+            {% if analysis %}
+            <section class="section results-overview" aria-label="Analysis summary">
+                <h2>Results overview</h2>
+                <div class="overview-counts">
+                    <span><strong>{{ analysis.qubits }}</strong> qubits</span>
+                    <span><strong>{{ analysis.depth }}</strong> original depth</span>
+                    <span><strong>{{ analysis.operations }}</strong> original operations</span>
+                </div>
+                {% if transpilation_verification %}
+                <dl class="overview-statuses">
+                    <div><dt>Necessity</dt><dd>{{ transpilation_verification.necessity.status|replace('_', ' ') }}</dd></div>
+                    <div><dt>Execution</dt><dd>{{ transpilation_verification.transpilation.status }}</dd></div>
+                    <div><dt>Functional equivalence</dt><dd>{{ transpilation_verification.functional_equivalence.status }}</dd></div>
+                </dl>
+                {% if transpilation_verification.functional_equivalence.status != 'PASS' %}
+                <p class="overview-note">{{ transpilation_verification.functional_equivalence.reasons|join(' ') }}</p>
+                {% endif %}
+                {% if transpilation_verification.necessity.status == 'UNDETERMINED' %}<p class="overview-note">No execution target selected. Hardware necessity is undetermined; general optimization is still available.</p>{% endif %}
+                {% else %}
+                <p class="overview-note">Review your original circuit, then choose Transpile to configure optimization. Necessity, execution and equivalence have not been checked yet.</p>
+                {% endif %}
+            </section>
+            {% endif %}
+            {% if transpilation_verification and not (comparison and transpiled_analysis) %}
+                {% include 'verification.html' %}
+            {% endif %}
 
             {% set input_form_id = 'code-form' if active_tab == 'code' else 'builder-form' %}
 
-            <!-- These controls belong to the active input form. -->
-            <input type="hidden"
-                   id="transpile-level-control"
-                   name="optimization_level"
-                   value="{{ transpilation_settings.optimization_level if transpilation_settings else 0 }}"
-                   form="{{ input_form_id }}">
-
-            <input type="hidden"
-                   id="transpile-basis-control"
-                   name="basis_choice"
-                   value="{{ transpilation_settings.basis_choice if transpilation_settings else 'default' }}"
-                   form="{{ input_form_id }}">
+            {% if analysis %}
+            <details class="section basis-configuration" id="basis-settings" {% if error and request.form.get('action') == 'transpile' %}open{% endif %}>
+                <summary class="basis-settings-summary">
+                    <strong>Transpilation settings</strong>
+                    <span id="basis-settings-summary-value">{{ 'Custom basis gates' if selected_basis_choice == 'custom' else basis_presets[selected_basis_choice][0] if selected_basis_choice in basis_presets else 'Qiskit Default' }} · Level {{ selected_optimization_level }}</span>
+                </summary>
+                <div class="basis-settings-content">
+                <div class="basis-settings-grid">
+                    <div>
+                        <label for="transpile-basis-control">Gate-set configuration</label>
+                        <select id="transpile-basis-control" name="basis_choice" form="{{ input_form_id }}" onchange="updateCustomBasisInput()">
+                            <option value="default" {% if selected_basis_choice == 'default' %}selected{% endif %}>Qiskit Default — no target</option>
+                            {% for key, preset in basis_presets.items() %}
+                            <option value="{{ key }}" {% if selected_basis_choice == key %}selected{% endif %}>Preset: {{ preset[0] }}</option>
+                            {% endfor %}
+                            <option value="custom" {% if selected_basis_choice == 'custom' %}selected{% endif %}>Custom basis gates</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="transpile-level-control">Optimization level</label>
+                        <select id="transpile-level-control" name="optimization_level" form="{{ input_form_id }}" onchange="refreshBasisSummary()">
+                            {% for level in range(4) %}<option value="{{ level }}" {% if selected_optimization_level == level|string %}selected{% endif %}>{{ level }} — {{ ['None', 'Light', 'Medium', 'Heavy'][level] }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div id="custom-basis-fields" {% if selected_basis_choice != 'custom' %}hidden{% endif %}>
+                    <label for="custom-basis-input">Custom gate names</label>
+                    <input id="custom-basis-input" type="text" name="custom_basis_gates" form="{{ input_form_id }}"
+                           value="{{ custom_basis_input }}" maxlength="1000" placeholder="rz, sx, x, cx"
+                           aria-describedby="custom-basis-help">
+                    <p id="custom-basis-help" class="overview-note">Separate gate names with commas or spaces. Capitalization is ignored. A valid set may still be unable to express your circuit.</p>
+                    <details><summary>Supported gate names</summary><p class="basis-gate-list">{{ supported_basis_gates|join(', ') }}</p></details>
+                </div>
+                <p class="overview-note">Presets and custom gates check gate-set compatibility only. They do not specify a processor's qubit capacity or connectivity. Qiskit Default selects no target.</p>
+                <button type="button" class="transpile-button basis-apply" onclick="selectTranspilationView(document.getElementById('transpile-basis-control').value)">Apply and transpile</button>
+                </div>
+            </details>
+            {% endif %}
 
             {% macro analysis_details(data, diagram_title='Circuit Diagram') %}
                 <div class="metrics">
@@ -164,8 +216,8 @@ qc.swap(0, 2)</code></pre>
                         <h3>Complexity</h3>
                         <p>{{ data.complexity }}</p>
                     </div>
-                    <div class="gate-frequency-box">
-                        <h3>Gate Frequency</h3>
+                    <details class="gate-frequency-box">
+                        <summary>Gate Frequency</summary>
                         <div class="gate-frequency">
                             {% for gate, count in data.gate_counts.items() %}
                             <div class="gate-item">
@@ -174,7 +226,7 @@ qc.swap(0, 2)</code></pre>
                             </div>
                             {% endfor %}
                         </div>
-                    </div>
+                    </details>
                 </div>
 
                 <section class="section results-section nested-result-section">
@@ -200,6 +252,7 @@ qc.swap(0, 2)</code></pre>
                 <section class="section results-section">
                     <div class="panel-heading">
                         <h2>Analysis</h2>
+                        {% if comparison and transpiled_analysis %}<button type="button" class="back-button" onclick="returnToTranspilation()">Return to results</button>{% endif %}
 
                         <div class="transpile-control">
                             <button type="button"
@@ -258,37 +311,41 @@ qc.swap(0, 2)</code></pre>
             <div id="transpilation-view">
                 <section class="section transpilation-section">
                     <div class="panel-heading transpilation-heading">
-                        <h2>Transpilation Analysis</h2>
+                        <h2>Transpilation Results</h2>
                         <button type="button" class="back-button" onclick="showOriginalAnalysis()">
                             <span aria-hidden="true">←</span> Back
                         </button>
                     </div>
 
-                    <!-- Choose the gate representation. Each representation has its own comparison tab. -->
-                    <div class="transpilation-tabs basis-tabs" role="tablist" aria-label="Gate representation">
-                        <button type="button"
-                                class="transpilation-tab {% if transpilation_settings.basis_choice == 'default' %}active{% endif %}"
-                                onclick="selectTranspilationView('default')" role="tab">
-                            Default Gate
-                        </button>
-                        <button type="button"
-                                class="transpilation-tab {% if transpilation_settings.basis_choice == 'hardware' %}active{% endif %}"
-                                onclick="selectTranspilationView('hardware')" role="tab">
-                            Hardware-Style Gate
-                        </button>
-                    </div>
-
                     <div class="transpilation-setting-note">
-                        Optimization level: <strong>{{ transpilation_settings.optimization_level }}</strong>
-                        {% if transpilation_settings.basis_choice == 'hardware' %}
-                            · Basis gates: <code>rz, sx, x, cx</code>
+                        Results for optimization level <strong>{{ transpilation_settings.optimization_level }}</strong>
+                        {% if transpilation_settings.basis_gates %}
+                            · Applied basis: <code>{{ transpilation_settings.basis_gates|join(', ') }}</code>
                         {% else %}
-                            · Basis gates: Qiskit default
+                            · Qiskit Default (no gate-set target)
                         {% endif %}
                     </div>
 
+                    {% if transpilation_verification %}
+                    <div class="transpilation-tabs" id="transpilation-report-tabs" role="tablist" aria-label="Transpilation results">
+                        <button type="button" class="transpilation-tab" id="report-original-tab"
+                                role="tab" aria-selected="false" aria-controls="report-original-panel" tabindex="-1"
+                                onclick="showTranspilationReport('original')">Original Circuit</button>
+                        <button type="button" class="transpilation-tab active" id="report-analysis-tab"
+                                role="tab" aria-selected="true" aria-controls="report-analysis-panel"
+                                onclick="showTranspilationReport('analysis')">Transpilation Analysis</button>
+                        <button type="button" class="transpilation-tab" id="report-verification-tab"
+                                role="tab" aria-selected="false" aria-controls="report-verification-panel" tabindex="-1"
+                                onclick="showTranspilationReport('verification')">Verification</button>
+                        <button type="button" class="transpilation-tab" id="report-comparison-tab"
+                                role="tab" aria-selected="false" aria-controls="report-comparison-panel" tabindex="-1"
+                                onclick="showTranspilationReport('comparison')">Comparison</button>
+                    </div>
+                    {% endif %}
+
+                    <div id="report-analysis-panel" {% if transpilation_verification %}role="tabpanel" aria-labelledby="report-analysis-tab" tabindex="0"{% endif %}>
                     <!-- The selected representation has its own result and compare tabs. -->
-                    <div class="transpilation-tabs result-tabs" role="tablist" aria-label="Selected transpilation details">
+                    {% if not transpilation_verification %}<div class="transpilation-tabs result-tabs" role="tablist" aria-label="Selected transpilation details">
                         <button type="button" class="transpilation-tab active" id="transpiled-result-tab"
                                 onclick="showTranspilationResult()" role="tab">
                             Transpiled Analysis
@@ -297,12 +354,19 @@ qc.swap(0, 2)</code></pre>
                                 onclick="showComparisonView()" role="tab">
                             Compare with Original
                         </button>
-                    </div>
+                    </div>{% endif %}
 
                     <div id="transpiled-gate-view">
                         {{ analysis_details(transpiled_analysis, 'Final Transpiled Circuit') }}
                     </div>
-
+                    {% if transpilation_verification %}</div>
+                    <div id="report-comparison-panel" role="tabpanel" aria-labelledby="report-comparison-tab" tabindex="0" hidden>
+                        {% include 'verification_comparison.html' %}
+                    </div>
+                    <div id="report-original-panel" role="tabpanel" aria-labelledby="report-original-tab" tabindex="0" hidden>
+                        {{ analysis_details(analysis, 'Original Circuit') }}
+                    </div>
+                    {% else %}
                     <div id="transpilation-comparison-view" hidden>
                         <p class="comparison-intro">
                             Original circuit compared with the {{ 'hardware-style' if transpilation_settings.basis_choice == 'hardware' else 'default-gate' }} transpiled circuit.
@@ -351,6 +415,13 @@ qc.swap(0, 2)</code></pre>
                             Positive reductions indicate fewer operations or lower depth. Negative changes indicate increases.
                         </div>
                     </div>
+                    </div>
+                    {% endif %}
+                    {% if transpilation_verification %}
+                    <div id="report-verification-panel" role="tabpanel" aria-labelledby="report-verification-tab" tabindex="0" hidden>
+                        {% include 'verification.html' %}
+                    </div>
+                    {% endif %}
                 </section>
             </div>
             {% endif %}
@@ -571,7 +642,7 @@ qc.swap(0, 2)</code></pre>
     // Open or close the optimization dropdown.
     function toggleOptimizationMenu() {
         const menu = document.getElementById("optimization-menu");
-        const button = document.querySelector(".transpile-button");
+        const button = document.querySelector(".transpile-control .transpile-button");
 
         if (!menu || !button) return;
 
@@ -600,12 +671,11 @@ qc.swap(0, 2)</code></pre>
     // Start transpilation at the selected optimization level.
     function beginTranspilation(level) {
         const levelInput = document.getElementById("transpile-level-control");
-        const basisInput = document.getElementById("transpile-basis-control");
         const menu = document.getElementById("optimization-menu");
-        const menuButton = document.querySelector(".transpile-button");
+        const menuButton = document.querySelector(".transpile-control .transpile-button");
 
         levelInput.value = String(level);
-        basisInput.value = "default";
+        // Keep the user-selected gate set when choosing an optimization level.
 
         setActiveFormAction("transpile");
 
@@ -624,6 +694,20 @@ qc.swap(0, 2)</code></pre>
     }
 
     // Change the gate representation while retaining the optimization level.
+    function updateCustomBasisInput() {
+        const custom = document.getElementById("transpile-basis-control").value === "custom";
+        document.getElementById("custom-basis-fields").hidden = !custom;
+        refreshBasisSummary();
+    }
+
+    function refreshBasisSummary() {
+        const summary = document.getElementById("basis-settings-summary-value");
+        if (!summary) return;
+        const basis = document.getElementById("transpile-basis-control");
+        const level = document.getElementById("transpile-level-control");
+        summary.textContent = basis.options[basis.selectedIndex].text + " · Level " + level.value;
+    }
+
     function selectTranspilationView(basisChoice) {
         document.getElementById("transpile-basis-control").value = basisChoice;
         setActiveFormAction("transpile");
@@ -637,6 +721,36 @@ qc.swap(0, 2)</code></pre>
                 form.submit();
             }
         }
+    }
+
+    // Switch already-rendered reports without resubmitting the circuit.
+    function showTranspilationReport(view) {
+        if (!["analysis", "verification", "original", "comparison"].includes(view)) return;
+        ["analysis", "verification", "original", "comparison"].forEach(function (name) {
+            const tab = document.getElementById("report-" + name + "-tab");
+            const panel = document.getElementById("report-" + name + "-panel");
+            if (!tab || !panel) return;
+            const selected = name === view;
+            panel.hidden = !selected;
+            tab.classList.toggle("active", selected);
+            tab.setAttribute("aria-selected", String(selected));
+            tab.tabIndex = selected ? 0 : -1;
+        });
+    }
+
+    const reportTabs = document.getElementById("transpilation-report-tabs");
+    if (reportTabs) {
+        reportTabs.addEventListener("keydown", function (event) {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+            const tabs = Array.from(reportTabs.querySelectorAll('[role="tab"]'));
+            const index = tabs.indexOf(event.target);
+            if (index < 0) return;
+            event.preventDefault();
+            const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1
+                : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+            tabs[next].click();
+            tabs[next].focus();
+        });
     }
 
     // Show the selected transpiled circuit analysis.
@@ -666,6 +780,11 @@ qc.swap(0, 2)</code></pre>
     }
 
     // Return to the original analysis in the same right-hand panel.
+    function returnToTranspilation() {
+        document.getElementById("original-analysis-view").style.display = "none";
+        document.getElementById("transpilation-view").style.display = "block";
+    }
+
     function showOriginalAnalysis() {
         const originalView = document.getElementById("original-analysis-view");
         const transpilationView = document.getElementById("transpilation-view");
@@ -676,7 +795,7 @@ qc.swap(0, 2)</code></pre>
         setActiveFormAction("analyse");
 
         const menu = document.getElementById("optimization-menu");
-        const menuButton = document.querySelector(".transpile-button");
+        const menuButton = document.querySelector(".transpile-control .transpile-button");
 
         if (menu) menu.hidden = true;
         if (menuButton) menuButton.setAttribute("aria-expanded", "false");
@@ -686,7 +805,7 @@ qc.swap(0, 2)</code></pre>
     document.addEventListener("click", function (event) {
         const control = document.querySelector(".transpile-control");
         const menu = document.getElementById("optimization-menu");
-        const button = document.querySelector(".transpile-button");
+        const button = document.querySelector(".transpile-control .transpile-button");
 
         if (control && menu && !control.contains(event.target)) {
             menu.hidden = true;

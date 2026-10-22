@@ -582,6 +582,223 @@ textarea {
     line-height: 1.5;
 }
 
+/* Verification panel: scoped to preserve the existing page styles. */
+.output-column > .basis-configuration { padding: 0; }
+.basis-configuration > .basis-settings-summary { padding: 12px 16px; font-size: 13px; line-height: 1.6; }
+.basis-settings-summary strong { margin-right: 10px; }
+.basis-settings-summary span { color: #666; font-size: 12px; overflow-wrap: anywhere; }
+.basis-configuration[open] > .basis-settings-summary { border-bottom: 1px solid #eee; }
+.basis-settings-content { padding: 16px; }
+.basis-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.basis-configuration label { display: block; font-size: 13px; font-weight: bold; margin: 0 0 7px; }
+.basis-configuration select, .basis-configuration input { width: 100%; min-width: 0; min-height: 42px; padding: 9px; border: 1px solid #ccc; border-radius: 5px; background: white; color: #111; font: inherit; font-size: 13px; }
+.basis-configuration #custom-basis-fields { margin-top: 14px; }
+.basis-configuration details { margin-top: 10px; font-size: 12px; }
+.basis-configuration summary { cursor: pointer; }
+.basis-configuration .basis-gate-list { overflow-wrap: anywhere; line-height: 1.7; }
+.basis-configuration .basis-apply { margin-top: 14px; min-height: 42px; }
+.basis-configuration :is(select, input, button, summary):focus-visible { outline: 2px solid #555; outline-offset: 3px; }
+.results-overview h2 { font-size: 17px; margin-bottom: 12px; }
+.overview-counts { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 13px; color: #555; }
+.overview-counts strong { color: #111; font-size: 19px; margin-right: 4px; }
+.overview-statuses { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin: 14px 0 0; padding-top: 12px; border-top: 1px solid #eee; }
+.overview-statuses dt { color: #555; font-size: 12px; }
+.overview-statuses dd { margin: 5px 0 0; font-size: 12px; font-weight: bold; overflow-wrap: anywhere; }
+.overview-note { font-size: 12px; color: #555; line-height: 1.5; margin: 12px 0 0; }
+.gate-frequency-box > summary { cursor: pointer; font-size: 15px; font-weight: bold; padding: 3px 0; }
+.gate-frequency-box[open] > summary { margin-bottom: 14px; }
+.gate-frequency-box > summary:focus-visible { outline: 2px solid #555; outline-offset: 2px; }
+#transpilation-report-tabs { grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); }
+#transpilation-report-tabs button { min-height: 44px; }
+#transpilation-verification .verification-math { margin-top: 18px; padding-top: 16px; border-top: 1px solid #ddd; }
+#transpilation-verification .verification-equation { font-family: monospace; background: #f5f5f5; padding: 12px; border-radius: 5px; }
+#transpilation-verification .matrix-scroll { max-height: 340px; }
+#transpilation-verification .unitary-matrix { width: max-content; min-width: 100%; }
+#transpilation-verification .unitary-matrix td { white-space: nowrap; text-align: center; padding: 9px; }
+
+#report-verification-panel > :is(#transpilation-verification, #verification-comparison) {
+    border: 0;
+    padding: 8px 0 0;
+    margin: 0;
+    border-radius: 0;
+}
+
+#transpilation-report-tabs .transpilation-tab:focus-visible {
+    outline: 2px solid #555;
+    outline-offset: 3px;
+}
+
+:is(#transpilation-verification, #verification-comparison) {
+    font-size: 13px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+:is(#transpilation-verification, #verification-comparison) h3 {
+    font-size: 14px;
+    margin: 0;
+}
+
+:is(#transpilation-verification, #verification-comparison) p {
+    margin: 10px 0;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-overall {
+    padding: 12px 14px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 18px;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-overall p {
+    margin: 0;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-overall span,
+:is(#transpilation-verification, #verification-comparison) .verification-note {
+    color: #555;
+    font-size: 12px;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #ededed;
+    color: #444;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.03em;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-badge[data-status="PASS"],
+:is(#transpilation-verification, #verification-comparison) .verification-badge[data-status="SUCCESS"] {
+    background: #eaf3ed;
+    color: #18613b;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-badge[data-status="REQUIRED"],
+:is(#transpilation-verification, #verification-comparison) .verification-badge[data-status="INCONCLUSIVE"],
+:is(#transpilation-verification, #verification-comparison) .verification-badge[data-status="UNDETERMINED"] {
+    background: #f8f0df;
+    color: #795615;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-badge[data-status="FAIL"],
+:is(#transpilation-verification, #verification-comparison) .verification-badge[data-status="ERROR"] {
+    background: #faeae7;
+    color: #983c30;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-checks {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin: 16px 0;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-checks > div {
+    padding: 12px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    border-radius: 6px;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-checks > div > span:first-child {
+    display: block;
+    margin-bottom: 8px;
+    color: #555;
+    font-size: 12px;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-subheading {
+    margin: 22px 0 10px;
+}
+
+:is(#transpilation-verification, #verification-comparison) .comparison-card h3 {
+    margin-bottom: 10px;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-details {
+    border-top: 1px solid #e5e5e5;
+    margin-top: 14px;
+    padding-top: 12px;
+}
+
+:is(#transpilation-verification, #verification-comparison) summary {
+    cursor: pointer;
+    font-weight: bold;
+    padding: 4px 0;
+}
+
+:is(#transpilation-verification, #verification-comparison) summary:hover {
+    color: #555;
+}
+
+:is(#transpilation-verification, #verification-comparison) summary:focus-visible,
+:is(#transpilation-verification, #verification-comparison) .verification-table-wrap:focus-visible {
+    outline: 2px solid #555;
+    outline-offset: 4px;
+    border-radius: 2px;
+}
+
+:is(#transpilation-verification, #verification-comparison) details[open] > summary {
+    margin-bottom: 12px;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-table-wrap {
+    overflow: auto;
+    margin-top: 10px;
+}
+
+:is(#transpilation-verification, #verification-comparison) table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+:is(#transpilation-verification, #verification-comparison) th,
+:is(#transpilation-verification, #verification-comparison) td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e5e5;
+    text-align: right;
+}
+
+:is(#transpilation-verification, #verification-comparison) tr > :first-child {
+    text-align: left;
+}
+
+:is(#transpilation-verification, #verification-comparison) tbody th {
+    font-weight: normal;
+}
+
+:is(#transpilation-verification, #verification-comparison) thead th {
+    background: #f5f5f5;
+    color: #555;
+}
+
+:is(#transpilation-verification, #verification-comparison) caption {
+    caption-side: bottom;
+    text-align: left;
+    color: #666;
+    padding-top: 8px;
+    font-size: 11px;
+}
+
+:is(#transpilation-verification, #verification-comparison) .verification-probabilities {
+    max-height: 320px;
+}
+
 /* TABLET */
 @media (max-width: 900px) {
     .container {
